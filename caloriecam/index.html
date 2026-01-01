@@ -172,6 +172,25 @@
       box-shadow: 0 0 0 2px rgba(228,106,74,.16) inset;
       background: rgba(228,106,74,.12);
     }
+    @media (max-width: 640px){
+      header .wrap{ padding:8px 10px; }
+      .topbar{ gap:6px; }
+      .brand{ gap:8px; }
+      .logo{ width:30px; height:30px; border-radius:9px; }
+      .brand h1{ font-size:14px; }
+      .brand p{ display:none; }
+      .top-actions{ gap:6px; flex-wrap:nowrap; }
+      .nav{
+        gap:6px;
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .nav::-webkit-scrollbar{ display:none; }
+      .tab{ padding:7px 8px; font-size:11px; white-space:nowrap; }
+      .theme-toggle{ width:32px; height:32px; border-radius:10px; flex:0 0 auto; }
+    }
 
     main{ padding:18px 0 48px; }
 
@@ -323,12 +342,58 @@
     .kpi-label{ color:var(--muted); font-size:11px; }
     .kpi-value{ font-size:16px; font-weight:700; }
 
-    .loglist{ display:flex; flex-direction:column; gap:10px; }
-    .logitem{ padding:12px; border-radius:14px; border:1px solid var(--border); background: var(--surface); }
-    .logitem .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    .logitem .title{ font-weight:700; }
-    .logitem .meta{ color:var(--muted); font-size:12px; margin-top:4px; }
+    .loglist{ display:flex; flex-direction:column; gap:12px; }
+    .logitem{
+      padding:14px 16px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    }
+    .logitem .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+    .logitem .title{ font-weight:700; font-size:15px; letter-spacing:.2px; }
+    .logitem .meta-grid{ display:grid; gap:6px; margin-top:8px; }
+    .logitem .meta-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+    .logitem .meta-label{
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      font-size:10px;
+      font-weight:700;
+      color:var(--muted);
+    }
+    .logitem .meta-value{ color:var(--text); font-weight:600; }
     .logitem .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .badge.meal{ background: rgba(28,122,122,.12); color: rgba(28,122,122,.95); border-color: rgba(28,122,122,.45); }
+    .kcal-pill{
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(228,106,74,.12);
+      border:1px solid rgba(228,106,74,.35);
+      color: rgba(228,106,74,.95);
+      font-weight:600;
+    }
+    .macro-pill{
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid transparent;
+      font-weight:600;
+    }
+    .macro-pill.protein{ background: rgba(28,122,122,.12); border-color: rgba(28,122,122,.35); color: rgba(28,122,122,.95); }
+    .macro-pill.carbs{ background: rgba(228,106,74,.12); border-color: rgba(228,106,74,.35); color: rgba(228,106,74,.95); }
+    .macro-pill.fat{ background: rgba(198,124,28,.14); border-color: rgba(198,124,28,.35); color: rgba(198,124,28,.95); }
+    .item-preview{
+      color:var(--text);
+      background: var(--surface-3);
+      border:1px solid var(--line-soft);
+      padding:4px 8px;
+      border-radius:10px;
+    }
+    .note-pill{
+      color:var(--text);
+      background: var(--field);
+      border:1px solid var(--line-soft);
+      padding:4px 8px;
+      border-radius:10px;
+    }
 
     details summary{ cursor:pointer; color:var(--text); }
 
@@ -496,6 +561,9 @@
                 <div class="box"><div class="t">🧈 Fat</div><div class="v" id="kpiF">—</div></div>
               </div>
 
+              <div class="row" id="mealTitleRow" style="display:none; margin-bottom:6px">
+                <span class="pill"><b>Meal</b><span id="mealTitleText"></span></span>
+              </div>
               <div id="analysisMeta" class="hint" style="display:none"></div>
 
               <div style="overflow:auto; border-radius:14px; border:1px solid var(--line)">
@@ -1823,7 +1891,17 @@
         $('#kpiF').textContent = '—';
         $('#assumptionsBox').style.display = 'none';
         $('#analysisMeta').style.display = 'none';
+        $('#mealTitleRow').style.display = 'none';
         return;
+      }
+
+      var title = String(analysis.meal_name || '').trim();
+      if(!title) title = guessTitleFromItems(analysis.detected_items);
+      if(title){
+        $('#mealTitleText').textContent = ' ' + title;
+        $('#mealTitleRow').style.display = 'flex';
+      } else {
+        $('#mealTitleRow').style.display = 'none';
       }
 
       var items = Array.isArray(analysis.detected_items) ? analysis.detected_items : [];
@@ -2065,11 +2143,18 @@
         div.innerHTML = '' +
           '<div class="top">' +
           '  <div>' +
-          '    <div class="title">' + escapeHtml(e.title || 'Meal') + ' <span class="badge">' + escapeHtml(e.mealType || '') + '</span></div>' +
-          '    <div class="meta">Time: ' + escapeHtml(dt.toLocaleString()) + ' | Energy: ' + escapeHtml(formatKcal(totals.calories)) + '</div>' +
-          '    <div class="meta">Macros: P ' + round1(totals.protein_g) + 'g | C ' + round1(totals.carbs_g) + 'g | F ' + round1(totals.fat_g) + 'g</div>' +
-          (itemPreview ? ('<div class="meta">Items: ' + escapeHtml(itemPreview + itemSuffix) + '</div>') : '') +
-          (e.notes ? ('<div class="meta">Notes: ' + escapeHtml(e.notes) + '</div>') : '') +
+          '    <div class="title">' + escapeHtml(e.title || 'Meal') + ' <span class="badge meal">' + escapeHtml(e.mealType || '') + '</span></div>' +
+          '    <div class="meta-grid">' +
+          '      <div class="meta-row"><span class="meta-label">Time</span><span class="meta-value">' + escapeHtml(dt.toLocaleString()) + '</span></div>' +
+          '      <div class="meta-row"><span class="meta-label">Energy</span><span class="kcal-pill">' + escapeHtml(formatKcal(totals.calories)) + '</span></div>' +
+          '      <div class="meta-row"><span class="meta-label">Macros</span>' +
+          '        <span class="macro-pill protein">P ' + round1(totals.protein_g) + 'g</span>' +
+          '        <span class="macro-pill carbs">C ' + round1(totals.carbs_g) + 'g</span>' +
+          '        <span class="macro-pill fat">F ' + round1(totals.fat_g) + 'g</span>' +
+          '      </div>' +
+          (itemPreview ? ('      <div class="meta-row"><span class="meta-label">Items</span><span class="item-preview">' + escapeHtml(itemPreview + itemSuffix) + '</span></div>') : '') +
+          (e.notes ? ('      <div class="meta-row"><span class="meta-label">Notes</span><span class="note-pill">' + escapeHtml(e.notes) + '</span></div>') : '') +
+          '    </div>' +
           '  </div>' +
           '  <div class="actions">' +
           '    <button class="btn" data-act="open">Open</button>' +
