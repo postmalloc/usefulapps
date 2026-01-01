@@ -108,6 +108,7 @@
       background: var(--header-bg);
       backdrop-filter: blur(14px);
       border-bottom:1px solid var(--border);
+      margin-top: 8px;
       padding-top: env(safe-area-inset-top);
     }
     .wrap{
@@ -3122,8 +3123,8 @@
 
       var total = Math.max(0.0001, protein + carbs + fat);
       var cx = w/2, cy = h/2;
-      var r = Math.min(w,h) * 0.28;
-      var ring = r * 0.55;
+      var r = Math.min(w,h) * 0.38;
+      var ring = r * 0.5;
 
       var chartBg = cssVar('--chart-bg', 'rgba(0,0,0,0.03)');
       var chartText = cssVar('--chart-text', 'rgba(31,35,38,0.6)');
@@ -3163,9 +3164,9 @@
         'C ' + round1(carbs) + 'g',
         'F ' + round1(fat) + 'g'
       ];
-      var fontSize = 12;
+      var fontSize = 16;
       var maxWidth = innerR * 1.8;
-      while(fontSize > 9){
+      while(fontSize > 12){
         ctx.font = '600 ' + fontSize + 'px ui-sans-serif, system-ui';
         var widest = 0;
         lines.forEach(function(t){ widest = Math.max(widest, ctx.measureText(t).width); });
@@ -3175,7 +3176,7 @@
 
       ctx.textAlign = 'center';
       ctx.fillStyle = chartTextStrong;
-      ctx.font = '700 11px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
+      ctx.font = '700 15px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       var lineH = fontSize + 2;
       var labelY = cy - (lineH + 6);
       ctx.fillText('Macros', cx, labelY);
@@ -3188,19 +3189,19 @@
       });
 
       ctx.textAlign = 'left';
-      ctx.font = '12px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
-      var y = 22;
+      ctx.font = '14px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
+      var y = 28;
       parts.forEach(function(p){
         ctx.fillStyle = p.color;
-        ctx.fillRect(16, y-10, 12, 12);
+        ctx.fillRect(16, y-12, 14, 14);
         ctx.fillStyle = chartText;
         ctx.fillText(p.name + ': ' + (p.v*100).toFixed(0) + '%', 36, y);
-        y += 20;
+        y += 24;
       });
 
       ctx.textAlign = 'left';
       ctx.fillStyle = chartTextStrong;
-      ctx.font = '13px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
+      ctx.font = '14px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       ctx.fillText('Macro split (grams)', 16, h-14);
     }
 
