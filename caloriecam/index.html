@@ -6,31 +6,32 @@
   <title>CalorieCam</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
     :root{
-      --bg:#f3efe6; --card:#fff9ee; --card2:#f7f1e4; --text:#1f2326; --muted:#5b616a;
-      --accent:#e46a4a; --accent2:#1c7a7a; --danger:#c8445a; --ok:#2b8a3e; --warn:#c67c1c;
-      --border:rgba(0,0,0,.10);
-      --line:rgba(0,0,0,.08);
-      --line-soft:rgba(0,0,0,.06);
-      --surface:rgba(255,255,255,.75);
-      --surface-2:rgba(255,255,255,.7);
-      --surface-3:rgba(255,255,255,.85);
-      --field:rgba(255,255,255,.8);
-      --header-bg:rgba(255,249,238,.82);
-      --tab-bg:rgba(255,255,255,.7);
-      --toast-bg:rgba(255,249,238,.96);
-      --preview-bg:rgba(255,255,255,.75);
-      --preview-border:rgba(0,0,0,.15);
-      --btn-bg:rgba(255,255,255,.7);
-      --btn-shadow:0 6px 16px rgba(31,35,38,.08);
-      --bg-grad-1:radial-gradient(1200px 700px at 10% 10%, rgba(228,106,74,.18), transparent 60%);
-      --bg-grad-2:radial-gradient(900px 700px at 90% 20%, rgba(28,122,122,.16), transparent 55%);
-      --bg-grad-3:linear-gradient(180deg, rgba(255,255,255,.6), rgba(243,239,230,.9));
-      --shadow: 0 18px 40px rgba(40,30,20,.18);
-      --r:18px;
+      --bg:#f4f6f9; --card:#ffffff; --card2:#f7f9fc; --text:#151a1f; --muted:#5b6370;
+      --accent:#2563eb; --accent2:#0ea5a3; --danger:#d9485d; --ok:#15803d; --warn:#b45309;
+      --border:rgba(18,22,28,.12);
+      --line:rgba(18,22,28,.10);
+      --line-soft:rgba(18,22,28,.06);
+      --surface:rgba(255,255,255,.88);
+      --surface-2:rgba(255,255,255,.8);
+      --surface-3:rgba(255,255,255,.92);
+      --field:rgba(248,250,252,.98);
+      --header-bg:rgba(248,250,252,.9);
+      --tab-bg:rgba(255,255,255,.9);
+      --toast-bg:rgba(255,255,255,.95);
+      --preview-bg:rgba(248,250,252,.95);
+      --preview-border:rgba(18,22,28,.16);
+      --btn-bg:rgba(255,255,255,.96);
+      --btn-shadow:0 8px 20px rgba(15,18,25,.08);
+      --bg-grad-1:radial-gradient(900px 520px at 8% 6%, rgba(37,99,235,.16), transparent 60%);
+      --bg-grad-2:radial-gradient(800px 520px at 92% 12%, rgba(14,165,163,.12), transparent 60%);
+      --bg-grad-3:linear-gradient(180deg, rgba(255,255,255,.85), rgba(244,246,249,.9));
+      --shadow: 0 22px 50px rgba(15,18,25,.12);
+      --r:16px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
-      --display: "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+      --sans: "Manrope", "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+      --display: "Space Grotesk", "Manrope", "Helvetica Neue", Arial, sans-serif;
       --chart-bg:rgba(0,0,0,0.03);
       --chart-grid:rgba(0,0,0,0.06);
       --chart-axis:rgba(0,0,0,0.12);
@@ -38,26 +39,26 @@
       --chart-text-strong:rgba(31,35,38,0.8);
     }
     [data-theme="dark"]{
-      --bg:#0b0c0f; --card:#141821; --card2:#0f1117; --text:#e9ecf1; --muted:#9aa3b3;
-      --accent:#ff7a59; --accent2:#2dd4bf; --danger:#ff5c7a; --ok:#22c55e; --warn:#f59e0b;
+      --bg:#0b0f14; --card:#121720; --card2:#0f141c; --text:#e7ebf2; --muted:#9aa3b2;
+      --accent:#5b8cff; --accent2:#2dd4bf; --danger:#ff5c7a; --ok:#22c55e; --warn:#f59e0b;
       --border:rgba(255,255,255,.12);
       --line:rgba(255,255,255,.10);
       --line-soft:rgba(255,255,255,.06);
-      --surface:rgba(18,20,27,.7);
-      --surface-2:rgba(18,20,27,.6);
-      --surface-3:rgba(18,20,27,.85);
+      --surface:rgba(18,22,30,.8);
+      --surface-2:rgba(18,22,30,.7);
+      --surface-3:rgba(18,22,30,.9);
       --field:rgba(255,255,255,.06);
-      --header-bg:rgba(11,12,15,.75);
-      --tab-bg:rgba(18,20,27,.7);
-      --toast-bg:rgba(18,20,27,.95);
+      --header-bg:rgba(11,15,20,.8);
+      --tab-bg:rgba(18,22,30,.75);
+      --toast-bg:rgba(18,22,30,.95);
       --preview-bg:rgba(255,255,255,.03);
       --preview-border:rgba(255,255,255,.2);
       --btn-bg:rgba(255,255,255,.06);
-      --btn-shadow:0 10px 24px rgba(0,0,0,.35);
-      --bg-grad-1:radial-gradient(1200px 700px at 15% 5%, rgba(255,122,89,.18), transparent 60%);
+      --btn-shadow:0 14px 28px rgba(0,0,0,.35);
+      --bg-grad-1:radial-gradient(1200px 700px at 15% 5%, rgba(91,140,255,.2), transparent 60%);
       --bg-grad-2:radial-gradient(900px 700px at 90% 20%, rgba(45,212,191,.14), transparent 55%);
-      --bg-grad-3:linear-gradient(180deg, rgba(12,14,19,.95), rgba(11,12,15,.95));
-      --shadow: 0 18px 40px rgba(0,0,0,.45);
+      --bg-grad-3:linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.95));
+      --shadow: 0 22px 50px rgba(0,0,0,.45);
       --chart-bg:rgba(255,255,255,0.03);
       --chart-grid:rgba(255,255,255,0.06);
       --chart-axis:rgba(255,255,255,0.12);
@@ -74,6 +75,8 @@
         var(--bg);
       color:var(--text);
       position:relative;
+      line-height:1.5;
+      letter-spacing:.1px;
       -webkit-text-size-adjust:100%;
       touch-action: manipulation;
     }
@@ -110,11 +113,11 @@
     }
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
-    .brand:focus-visible{ outline:2px solid rgba(228,106,74,.6); outline-offset:4px; border-radius:12px; }
+    .brand:focus-visible{ outline:2px solid rgba(37,99,235,.6); outline-offset:4px; border-radius:12px; }
     .logo{
       width:40px; height:40px; border-radius:12px;
-      background: conic-gradient(from 220deg, rgba(228,106,74,.95), rgba(28,122,122,.95), rgba(228,106,74,.85));
-      box-shadow: 0 12px 24px rgba(228,106,74,.25);
+      background: conic-gradient(from 220deg, rgba(37,99,235,.95), rgba(14,165,163,.95), rgba(37,99,235,.85));
+      box-shadow: 0 12px 24px rgba(37,99,235,.25);
     }
     .brand h1{ font-size:17px; margin:0; line-height:1.1; font-family:var(--display); letter-spacing:.3px; }
     .brand p{ margin:0; color:var(--muted); font-size:12px; }
@@ -166,15 +169,17 @@
       border:1px solid var(--border);
       background: var(--tab-bg);
       color:var(--text);
-      padding:10px 12px;
+      padding:8px 12px;
       border-radius:999px;
-      font-size:13px;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:.2px;
       cursor:pointer;
     }
     .tab[aria-selected="true"]{
-      border-color: rgba(228,106,74,.55);
-      box-shadow: 0 0 0 2px rgba(228,106,74,.16) inset;
-      background: rgba(228,106,74,.12);
+      border-color: rgba(37,99,235,.55);
+      box-shadow: 0 0 0 2px rgba(37,99,235,.14) inset;
+      background: rgba(37,99,235,.12);
     }
     @media (max-width: 640px){
       header .wrap{
@@ -198,9 +203,9 @@
       .theme-toggle{ width:32px; height:32px; border-radius:10px; flex:0 0 auto; }
     }
 
-    main{ padding:18px 0 48px; }
+    main{ padding:24px 0 56px; }
 
-    .grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; }
+    .grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; }
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
 
     .card{
@@ -211,28 +216,29 @@
       overflow:hidden;
     }
     .card .hd{
-      padding:14px 14px 10px;
+      padding:18px 18px 12px;
       border-bottom:1px solid var(--border);
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
       gap:10px;
     }
-    .card .hd h2{ margin:0; font-size:15px; letter-spacing:.2px; font-family:var(--display); }
-    .card .hd .sub{ color:var(--muted); font-size:12px; margin-top:2px; }
-    .card .bd{ padding:14px; }
+    .card .hd h2{ margin:0; font-size:17px; letter-spacing:.2px; font-family:var(--display); font-weight:600; }
+    .card .hd .sub{ color:var(--muted); font-size:13px; margin-top:3px; }
+    .card .bd{ padding:18px; }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .row > *{ flex:1 1 auto; }
-    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
     input[type="text"], input[type="password"], input[type="number"], textarea, select{
       width:100%;
-      padding:10px 10px;
-      border-radius:12px;
+      padding:11px 12px;
+      border-radius:10px;
       background: var(--field);
       border:1px solid var(--border);
       color:var(--text);
       outline:none;
+      font-size:14px;
     }
     @media (max-width: 900px){
       input[type="text"], input[type="password"], input[type="number"], textarea, select{
@@ -252,17 +258,18 @@
     .file-input-wrap{ display:flex; align-items:center; gap:10px; }
     .file-name{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
     .file-btn{ min-width:140px; }
-    textarea{ resize:vertical; min-height:84px; }
+    textarea{ resize:vertical; min-height:96px; }
     input[type="range"]{ width:100%; }
-    .hint{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.35; }
+    .hint{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45; }
 
     .btn{
       border:1px solid var(--border);
       background: var(--btn-bg);
       color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
+      padding:10px 14px;
+      border-radius:10px;
       font-size:13px;
+      font-weight:600;
       cursor:pointer;
       display:inline-flex;
       align-items:center;
@@ -271,10 +278,10 @@
       user-select:none;
       box-shadow: var(--btn-shadow);
     }
-    .btn.primary{ background: rgba(228,106,74,.18); border-color: rgba(228,106,74,.6); }
-    .btn.primary:hover{ background: rgba(228,106,74,.26); }
-    .btn.danger{ background: rgba(200,68,90,.12); border-color: rgba(200,68,90,.5); }
-    .btn.ok{ background: rgba(43,138,62,.12); border-color: rgba(43,138,62,.45); }
+    .btn.primary{ background: rgba(37,99,235,.16); border-color: rgba(37,99,235,.5); color:var(--text); }
+    .btn.primary:hover{ background: rgba(37,99,235,.22); }
+    .btn.danger{ background: rgba(217,72,93,.12); border-color: rgba(217,72,93,.4); }
+    .btn.ok{ background: rgba(21,128,61,.12); border-color: rgba(21,128,61,.4); }
     .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .pill{
@@ -291,7 +298,7 @@
     .preview{
       width:100%; aspect-ratio: 4/3; background: var(--preview-bg);
       border:1px dashed var(--preview-border);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow:hidden;
       display:flex;
       align-items:center;
@@ -334,7 +341,7 @@
 
     .table{ width:100%; border-collapse:collapse; font-size:13px; overflow:hidden; }
     .table th, .table td{ padding:10px 8px; border-bottom: 1px solid var(--line-soft); vertical-align:top; }
-    .table th{ color:var(--muted); font-weight:600; text-align:left; font-size:12px; }
+    .table th{ color:var(--muted); font-weight:600; text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.4px; }
     .table td input{ padding:8px 8px; border-radius:10px; }
     .table td .small{ font-size:12px; color:var(--muted); margin-top:4px; }
 
@@ -368,13 +375,13 @@
     }
     .logitem .meta-value{ color:var(--text); font-weight:600; }
     .logitem .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-    .badge.meal{ background: rgba(28,122,122,.12); color: rgba(28,122,122,.95); border-color: rgba(28,122,122,.45); }
+    .badge.meal{ background: rgba(14,165,163,.12); color: rgba(14,165,163,.95); border-color: rgba(14,165,163,.45); }
     .kcal-pill{
       padding:4px 8px;
       border-radius:999px;
-      background: rgba(228,106,74,.12);
-      border:1px solid rgba(228,106,74,.35);
-      color: rgba(228,106,74,.95);
+      background: rgba(37,99,235,.12);
+      border:1px solid rgba(37,99,235,.35);
+      color: rgba(37,99,235,.95);
       font-weight:600;
     }
     .macro-pill{
@@ -383,9 +390,9 @@
       border:1px solid transparent;
       font-weight:600;
     }
-    .macro-pill.protein{ background: rgba(28,122,122,.12); border-color: rgba(28,122,122,.35); color: rgba(28,122,122,.95); }
-    .macro-pill.carbs{ background: rgba(228,106,74,.12); border-color: rgba(228,106,74,.35); color: rgba(228,106,74,.95); }
-    .macro-pill.fat{ background: rgba(198,124,28,.14); border-color: rgba(198,124,28,.35); color: rgba(198,124,28,.95); }
+    .macro-pill.protein{ background: rgba(14,165,163,.12); border-color: rgba(14,165,163,.35); color: rgba(14,165,163,.95); }
+    .macro-pill.carbs{ background: rgba(37,99,235,.12); border-color: rgba(37,99,235,.35); color: rgba(37,99,235,.95); }
+    .macro-pill.fat{ background: rgba(180,83,9,.14); border-color: rgba(180,83,9,.35); color: rgba(180,83,9,.95); }
     .item-preview{
       color:var(--text);
       background: var(--surface-3);
@@ -438,7 +445,7 @@
     .kbd{ font-family: var(--mono); border:1px solid var(--border); padding:2px 6px; border-radius:8px; background: var(--surface-2); color:var(--text); font-size:12px; }
 
     .badge{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
-    .badge.accent{ border-color: rgba(228,106,74,.45); color: rgba(228,106,74,.95); background: rgba(228,106,74,.10); }
+    .badge.accent{ border-color: rgba(37,99,235,.45); color: rgba(37,99,235,.95); background: rgba(37,99,235,.10); }
 
 </style>
 </head>
@@ -486,8 +493,8 @@
           <div class="card">
             <div class="hd">
               <div>
-                <h2>1) Add photos</h2>
-                <div class="sub">Use your phone camera or choose images.</div>
+                <h2>Capture photos</h2>
+                <div class="sub">Use your camera or choose existing images.</div>
               </div>
               <span class="badge accent" id="api-status">No key</span>
             </div>
@@ -552,8 +559,8 @@
           <div class="card">
             <div class="hd">
               <div>
-                <h2>2) Breakdown</h2>
-                <div class="sub">Editable. Totals update instantly. Save to your log when it looks right.</div>
+                <h2>Meal breakdown</h2>
+                <div class="sub">Edit items, confirm totals, and save to your log.</div>
               </div>
               <div class="row" style="justify-content:flex-end">
                 <button class="btn ok" id="btnSave" disabled>Save to log</button>
