@@ -110,6 +110,10 @@
       border-bottom:1px solid var(--border);
       padding-top: env(safe-area-inset-top);
     }
+    @supports (-webkit-touch-callout: none){
+      header{ position:fixed; left:0; right:0; top:0; }
+      main{ padding-top: calc(24px + var(--header-offset, 0px)); }
+    }
     .wrap{
       max-width:1080px;
       margin:0 auto;

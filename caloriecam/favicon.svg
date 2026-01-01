@@ -1,23 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="CalorieCam">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ffbe7b"/>
-      <stop offset="100%" stop-color="#ff6b6b"/>
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="55%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="35%" cy="25%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#0b3b7a"/>
+      <stop offset="100%" stop-color="#0ea5a3"/>
     </linearGradient>
   </defs>
+
   <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="120" fill="url(#glow)"/>
 
-  <g transform="translate(96 96)">
-    <circle cx="160" cy="160" r="130" fill="#ffffff" opacity="0.95"/>
-    <circle cx="160" cy="160" r="96" fill="#ffe8d2"/>
-    <circle cx="160" cy="160" r="64" fill="#2a6f6b"/>
-    <circle cx="160" cy="160" r="26" fill="#0f3d3c"/>
-    <circle cx="136" cy="136" r="10" fill="#ffffff" opacity="0.9"/>
+  <rect x="120" y="170" width="272" height="190" rx="60" fill="#f8fbff" opacity="0.96"/>
+  <rect x="168" y="132" width="110" height="52" rx="18" fill="#f8fbff" opacity="0.96"/>
 
-    <g transform="translate(210 44)">
-      <path d="M16 4c10 6 18 6 28 0" fill="none" stroke="#2f7d32" stroke-width="8" stroke-linecap="round"/>
-      <path d="M30 8c4 10 2 22-6 32" fill="none" stroke="#2f7d32" stroke-width="8" stroke-linecap="round"/>
-    </g>
-    <circle cx="268" cy="110" r="26" fill="#3bc06a"/>
-  </g>
+  <circle cx="256" cy="265" r="78" fill="#0f172a" opacity="0.95"/>
+  <circle cx="256" cy="265" r="58" fill="url(#lens)"/>
+  <circle cx="256" cy="265" r="26" fill="#071225"/>
+  <circle cx="230" cy="238" r="12" fill="#ffffff" opacity="0.9"/>
+
+  <circle cx="348" cy="198" r="16" fill="#22c55e"/>
+  <circle cx="348" cy="198" r="6" fill="#eafff4" opacity="0.9"/>
 </svg>
