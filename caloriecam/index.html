@@ -924,9 +924,12 @@
     // NOTE: This file intentionally avoids newer JS syntax (optional chaining, nullish coalescing, catch without binding)
     // because those can throw *parse-time* SyntaxError in some browsers.
 
-    var LS_SETTINGS = 'calorieCam.settings.v1';
-    var LS_ENTRIES  = 'calorieCam.entries.v1';
-    var LS_THEME    = 'calorieCam.theme.v1';
+    var LS_SETTINGS = 'calorieCam.settings';
+    var LS_ENTRIES  = 'calorieCam.entries';
+    var LS_THEME    = 'calorieCam.theme';
+    var LS_SETTINGS_KEYS = [LS_SETTINGS, 'calorieCam.settings.v1'];
+    var LS_ENTRIES_KEYS  = [LS_ENTRIES, 'calorieCam.entries.v1'];
+    var LS_THEME_KEYS    = [LS_THEME, 'calorieCam.theme.v1'];
 
     function $(sel, el){ return (el || document).querySelector(sel); }
     function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
@@ -994,6 +997,29 @@
         return v ? JSON.parse(v) : fallback;
       } catch(err){
         if(Object.prototype.hasOwnProperty.call(_memStore, key)) return _memStore[key];
+        return fallback;
+      }
+    }
+
+    function loadLSWithMigration(keys, fallback, isValid){
+      var k;
+      var raw = null;
+      for(var i = 0; i < keys.length; i++){
+        k = keys[i];
+        try{
+          raw = localStorage.getItem(k);
+        } catch(err){
+          raw = null;
+        }
+        if(raw !== null && raw !== '') break;
+      }
+      if(raw === null || raw === '') return fallback;
+      try{
+        var parsed = JSON.parse(raw);
+        if(isValid && !isValid(parsed)) return fallback;
+        if(k !== keys[0]) saveLS(keys[0], parsed);
+        return parsed;
+      } catch(err){
         return fallback;
       }
     }
@@ -1070,7 +1096,7 @@
     }
 
     function initTheme(){
-      var saved = loadLS(LS_THEME, '');
+      var saved = loadLSWithMigration(LS_THEME_KEYS, '', function(v){ return v === 'dark' || v === 'light'; });
       if(saved === 'dark' || saved === 'light'){
         applyTheme(saved);
       } else {
@@ -1092,11 +1118,11 @@
 
     function init(){
       // Load persisted state
-      var loadedSettings = loadLS(LS_SETTINGS, {});
+      var loadedSettings = loadLSWithMigration(LS_SETTINGS_KEYS, {}, function(v){ return v && typeof v === 'object'; });
       for(var k in loadedSettings){
         if(Object.prototype.hasOwnProperty.call(loadedSettings, k)) state.settings[k] = loadedSettings[k];
       }
-      state.entries = loadLS(LS_ENTRIES, []);
+      state.entries = loadLSWithMigration(LS_ENTRIES_KEYS, [], function(v){ return Array.isArray(v); });
       if(!Array.isArray(state.entries)) state.entries = [];
 
       initTheme();
