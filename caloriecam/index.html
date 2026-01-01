@@ -2,58 +2,175 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CalorieCam — Photo Calorie Counter (AI Vision)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>CalorieCam</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <style>
     :root{
-      --bg:#0b0c0f; --card:#12141b; --card2:#0f1117; --text:#e9ecf1; --muted:#a7afbf;
-      --accent:#7c5cff; --accent2:#2dd4bf; --danger:#ff5c7a; --ok:#22c55e; --warn:#f59e0b;
-      --border:rgba(255,255,255,.10);
-      --shadow: 0 10px 30px rgba(0,0,0,.45);
-      --r:16px;
+      --bg:#f3efe6; --card:#fff9ee; --card2:#f7f1e4; --text:#1f2326; --muted:#5b616a;
+      --accent:#e46a4a; --accent2:#1c7a7a; --danger:#c8445a; --ok:#2b8a3e; --warn:#c67c1c;
+      --border:rgba(0,0,0,.10);
+      --line:rgba(0,0,0,.08);
+      --line-soft:rgba(0,0,0,.06);
+      --surface:rgba(255,255,255,.75);
+      --surface-2:rgba(255,255,255,.7);
+      --surface-3:rgba(255,255,255,.85);
+      --field:rgba(255,255,255,.8);
+      --header-bg:rgba(255,249,238,.82);
+      --tab-bg:rgba(255,255,255,.7);
+      --toast-bg:rgba(255,249,238,.96);
+      --preview-bg:rgba(255,255,255,.75);
+      --preview-border:rgba(0,0,0,.15);
+      --btn-bg:rgba(255,255,255,.7);
+      --btn-shadow:0 6px 16px rgba(31,35,38,.08);
+      --bg-grad-1:radial-gradient(1200px 700px at 10% 10%, rgba(228,106,74,.18), transparent 60%);
+      --bg-grad-2:radial-gradient(900px 700px at 90% 20%, rgba(28,122,122,.16), transparent 55%);
+      --bg-grad-3:linear-gradient(180deg, rgba(255,255,255,.6), rgba(243,239,230,.9));
+      --shadow: 0 18px 40px rgba(40,30,20,.18);
+      --r:18px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+      --display: "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+      --chart-bg:rgba(0,0,0,0.03);
+      --chart-grid:rgba(0,0,0,0.06);
+      --chart-axis:rgba(0,0,0,0.12);
+      --chart-text:rgba(31,35,38,0.55);
+      --chart-text-strong:rgba(31,35,38,0.8);
+    }
+    [data-theme="dark"]{
+      --bg:#0b0c0f; --card:#141821; --card2:#0f1117; --text:#e9ecf1; --muted:#9aa3b3;
+      --accent:#ff7a59; --accent2:#2dd4bf; --danger:#ff5c7a; --ok:#22c55e; --warn:#f59e0b;
+      --border:rgba(255,255,255,.12);
+      --line:rgba(255,255,255,.10);
+      --line-soft:rgba(255,255,255,.06);
+      --surface:rgba(18,20,27,.7);
+      --surface-2:rgba(18,20,27,.6);
+      --surface-3:rgba(18,20,27,.85);
+      --field:rgba(255,255,255,.06);
+      --header-bg:rgba(11,12,15,.75);
+      --tab-bg:rgba(18,20,27,.7);
+      --toast-bg:rgba(18,20,27,.95);
+      --preview-bg:rgba(255,255,255,.03);
+      --preview-border:rgba(255,255,255,.2);
+      --btn-bg:rgba(255,255,255,.06);
+      --btn-shadow:0 10px 24px rgba(0,0,0,.35);
+      --bg-grad-1:radial-gradient(1200px 700px at 15% 5%, rgba(255,122,89,.18), transparent 60%);
+      --bg-grad-2:radial-gradient(900px 700px at 90% 20%, rgba(45,212,191,.14), transparent 55%);
+      --bg-grad-3:linear-gradient(180deg, rgba(12,14,19,.95), rgba(11,12,15,.95));
+      --shadow: 0 18px 40px rgba(0,0,0,.45);
+      --chart-bg:rgba(255,255,255,0.03);
+      --chart-grid:rgba(255,255,255,0.06);
+      --chart-axis:rgba(255,255,255,0.12);
+      --chart-text:rgba(255,255,255,0.6);
+      --chart-text-strong:rgba(255,255,255,0.85);
     }
     *{ box-sizing:border-box; }
+    html, body{ background: var(--bg); }
     body{
-      margin:0; font-family:var(--sans); background: radial-gradient(1200px 800px at 30% 10%, rgba(124,92,255,.18), transparent 60%),
-      radial-gradient(900px 700px at 90% 20%, rgba(45,212,191,.12), transparent 60%),
-      var(--bg);
+      margin:0; font-family:var(--sans); background:
+        var(--bg-grad-1),
+        var(--bg-grad-2),
+        var(--bg-grad-3),
+        var(--bg);
       color:var(--text);
+      position:relative;
+      -webkit-text-size-adjust:100%;
+      touch-action: manipulation;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(45deg, rgba(0,0,0,.02) 0 1px, transparent 1px 5px),
+        radial-gradient(800px 400px at 50% 0%, rgba(255,255,255,.45), transparent 70%);
+      mix-blend-mode:multiply;
+      opacity:.22;
+    }
+    [data-theme="dark"] body::before{
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 1px, transparent 1px 5px),
+        radial-gradient(800px 400px at 50% 0%, rgba(255,255,255,.12), transparent 70%);
+      mix-blend-mode:screen;
+      opacity:.18;
     }
     a{ color:inherit; }
     header{
       position:sticky; top:0; z-index:50;
-      background: rgba(11,12,15,.7);
+      background: var(--header-bg);
       backdrop-filter: blur(14px);
       border-bottom:1px solid var(--border);
+      padding-top: env(safe-area-inset-top);
     }
     .wrap{ max-width:1080px; margin:0 auto; padding:16px; }
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
-    .brand:focus-visible{ outline:2px solid rgba(124,92,255,.6); outline-offset:4px; border-radius:12px; }
+    .brand:focus-visible{ outline:2px solid rgba(228,106,74,.6); outline-offset:4px; border-radius:12px; }
     .logo{
       width:40px; height:40px; border-radius:12px;
-      background: linear-gradient(135deg, rgba(124,92,255,.9), rgba(45,212,191,.9));
-      box-shadow: 0 10px 30px rgba(124,92,255,.25);
+      background: conic-gradient(from 220deg, rgba(228,106,74,.95), rgba(28,122,122,.95), rgba(228,106,74,.85));
+      box-shadow: 0 12px 24px rgba(228,106,74,.25);
     }
-    .brand h1{ font-size:16px; margin:0; line-height:1.2; }
+    .brand h1{ font-size:17px; margin:0; line-height:1.1; font-family:var(--display); letter-spacing:.3px; }
     .brand p{ margin:0; color:var(--muted); font-size:12px; }
 
     .nav{ display:flex; gap:8px; flex-wrap:wrap; }
+    .top-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .theme-toggle{ width:40px; height:40px; padding:0; border-radius:12px; }
+    .theme-toggle .icon{ width:18px; height:18px; display:block; }
+    .theme-toggle .icon{ stroke: currentColor; fill: none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    [data-theme="dark"] .theme-toggle .icon-sun{ display:none; }
+    [data-theme="light"] .theme-toggle .icon-moon{ display:none; }
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      border:0;
+      white-space:nowrap;
+    }
+    .top-loader{
+      position:fixed;
+      left:0;
+      right:0;
+      top: env(safe-area-inset-top);
+      height:3px;
+      z-index:200;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .2s ease;
+    }
+    .top-loader.active{ opacity:1; }
+    .top-loader .bar{
+      height:100%;
+      width:45%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius:999px;
+      transform: translateX(-100%);
+      animation: loaderMove 1.1s ease-in-out infinite;
+    }
+    @keyframes loaderMove{
+      0%{ transform: translateX(-100%); }
+      50%{ transform: translateX(60%); }
+      100%{ transform: translateX(200%); }
+    }
     .tab{
       border:1px solid var(--border);
-      background: rgba(18,20,27,.55);
+      background: var(--tab-bg);
       color:var(--text);
       padding:10px 12px;
-      border-radius:12px;
+      border-radius:999px;
       font-size:13px;
       cursor:pointer;
     }
     .tab[aria-selected="true"]{
-      border-color: rgba(124,92,255,.6);
-      box-shadow: 0 0 0 2px rgba(124,92,255,.18) inset;
-      background: rgba(124,92,255,.10);
+      border-color: rgba(228,106,74,.55);
+      box-shadow: 0 0 0 2px rgba(228,106,74,.16) inset;
+      background: rgba(228,106,74,.12);
     }
 
     main{ padding:18px 0 48px; }
@@ -62,7 +179,7 @@
     @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
 
     .card{
-      background: linear-gradient(180deg, rgba(18,20,27,.92), rgba(15,17,23,.92));
+      background: linear-gradient(180deg, var(--card), var(--card2));
       border:1px solid var(--border);
       border-radius: var(--r);
       box-shadow: var(--shadow);
@@ -76,7 +193,7 @@
       align-items:flex-start;
       gap:10px;
     }
-    .card .hd h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .card .hd h2{ margin:0; font-size:15px; letter-spacing:.2px; font-family:var(--display); }
     .card .hd .sub{ color:var(--muted); font-size:12px; margin-top:2px; }
     .card .bd{ padding:14px; }
 
@@ -87,10 +204,15 @@
       width:100%;
       padding:10px 10px;
       border-radius:12px;
-      background: rgba(255,255,255,.04);
+      background: var(--field);
       border:1px solid var(--border);
       color:var(--text);
       outline:none;
+    }
+    @media (max-width: 900px){
+      input[type="text"], input[type="password"], input[type="number"], textarea, select{
+        font-size:16px;
+      }
     }
     .file-input{
       position:absolute;
@@ -111,7 +233,7 @@
 
     .btn{
       border:1px solid var(--border);
-      background: rgba(255,255,255,.06);
+      background: var(--btn-bg);
       color:var(--text);
       padding:10px 12px;
       border-radius:12px;
@@ -122,17 +244,18 @@
       justify-content:center;
       gap:8px;
       user-select:none;
+      box-shadow: var(--btn-shadow);
     }
-    .btn.primary{ background: rgba(124,92,255,.20); border-color: rgba(124,92,255,.6); }
-    .btn.primary:hover{ background: rgba(124,92,255,.28); }
-    .btn.danger{ background: rgba(255,92,122,.16); border-color: rgba(255,92,122,.5); }
-    .btn.ok{ background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.45); }
+    .btn.primary{ background: rgba(228,106,74,.18); border-color: rgba(228,106,74,.6); }
+    .btn.primary:hover{ background: rgba(228,106,74,.26); }
+    .btn.danger{ background: rgba(200,68,90,.12); border-color: rgba(200,68,90,.5); }
+    .btn.ok{ background: rgba(43,138,62,.12); border-color: rgba(43,138,62,.45); }
     .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       border:1px solid var(--border);
-      background: rgba(255,255,255,.04);
+      background: var(--surface);
       padding:8px 10px;
       border-radius:999px;
       font-size:12px;
@@ -141,8 +264,8 @@
     .pill b{ color:var(--text); font-weight:600; }
 
     .preview{
-      width:100%; aspect-ratio: 4/3; background: rgba(255,255,255,.03);
-      border:1px dashed rgba(255,255,255,.20);
+      width:100%; aspect-ratio: 4/3; background: var(--preview-bg);
+      border:1px dashed var(--preview-border);
       border-radius: 14px;
       overflow:hidden;
       display:flex;
@@ -153,16 +276,46 @@
     }
     .preview img{ width:100%; height:100%; object-fit:cover; display:none; }
     .preview .ph{ padding:16px; text-align:center; }
+    .thumbs{
+      display:none;
+      gap:8px;
+      margin-top:10px;
+      overflow:auto;
+      padding-bottom:2px;
+    }
+    .thumb{
+      border:1px solid var(--border);
+      background: transparent;
+      padding:0;
+      border-radius:10px;
+      width:64px;
+      height:64px;
+      flex:0 0 auto;
+      cursor:pointer;
+      opacity:.75;
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      border-radius:9px;
+      display:block;
+    }
+    .thumb.active{
+      opacity:1;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--line-soft) inset;
+    }
 
     .table{ width:100%; border-collapse:collapse; font-size:13px; overflow:hidden; }
-    .table th, .table td{ padding:10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align:top; }
+    .table th, .table td{ padding:10px 8px; border-bottom: 1px solid var(--line-soft); vertical-align:top; }
     .table th{ color:var(--muted); font-weight:600; text-align:left; font-size:12px; }
     .table td input{ padding:8px 8px; border-radius:10px; }
     .table td .small{ font-size:12px; color:var(--muted); margin-top:4px; }
 
     .kpi{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
     @media (max-width: 700px){ .kpi{ grid-template-columns: repeat(2, 1fr); } }
-    .kpi .box{ padding:12px; border-radius:14px; border:1px solid var(--border); background: rgba(255,255,255,.04); }
+    .kpi .box{ padding:12px; border-radius:14px; border:1px solid var(--border); background: var(--surface); }
     .kpi .box .t{ color:var(--muted); font-size:12px; }
     .kpi .box .v{ font-size:18px; margin-top:6px; font-weight:700; letter-spacing:.2px; }
     .kpi-rows{ display:flex; flex-direction:column; gap:6px; }
@@ -171,7 +324,7 @@
     .kpi-value{ font-size:16px; font-weight:700; }
 
     .loglist{ display:flex; flex-direction:column; gap:10px; }
-    .logitem{ padding:12px; border-radius:14px; border:1px solid var(--border); background: rgba(255,255,255,.04); }
+    .logitem{ padding:12px; border-radius:14px; border:1px solid var(--border); background: var(--surface); }
     .logitem .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
     .logitem .title{ font-weight:700; }
     .logitem .meta{ color:var(--muted); font-size:12px; margin-top:4px; }
@@ -181,7 +334,7 @@
 
     .toast{
       position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
-      background: rgba(18,20,27,.95);
+      background: var(--toast-bg);
       border:1px solid var(--border);
       box-shadow: var(--shadow);
       border-radius: 14px;
@@ -195,32 +348,31 @@
     .toast .muted{ color:var(--muted); font-size:12px; margin-top:4px; }
 
     .mono{ font-family: var(--mono); font-size:12px; color:var(--muted); }
-    .hr{ height:1px; background: rgba(255,255,255,.08); margin: 12px 0; }
+    .hr{ height:1px; background: var(--line); margin: 12px 0; }
 
     .chip{
       display:inline-flex; align-items:center; gap:8px;
-      border:1px solid rgba(255,255,255,.10);
+      border:1px solid var(--border);
       padding:6px 10px;
       border-radius:999px;
-      background: rgba(255,255,255,.04);
+      background: var(--surface);
       font-size:12px;
       color:var(--muted);
     }
     .dot{ width:8px; height:8px; border-radius:999px; background: var(--muted); opacity:.8; }
     .dot.ok{ background: var(--ok); }
 
-    .canvasBox{ border:1px solid var(--border); border-radius:14px; padding:10px; background: rgba(255,255,255,.03); }
+    .canvasBox{ border:1px solid var(--border); border-radius:14px; padding:10px; background: var(--surface); }
 
-    .kbd{ font-family: var(--mono); border:1px solid rgba(255,255,255,.14); padding:2px 6px; border-radius:8px; background: rgba(255,255,255,.03); color:var(--text); font-size:12px; }
+    .kbd{ font-family: var(--mono); border:1px solid var(--border); padding:2px 6px; border-radius:8px; background: var(--surface-2); color:var(--text); font-size:12px; }
 
-    .badge{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:var(--muted); }
-    .badge.accent{ border-color: rgba(124,92,255,.45); color: rgba(124,92,255,.95); background: rgba(124,92,255,.10); }
+    .badge{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+    .badge.accent{ border-color: rgba(228,106,74,.45); color: rgba(228,106,74,.95); background: rgba(228,106,74,.10); }
 
-    .warnbox{ border:1px solid rgba(245,158,11,.35); background: rgba(245,158,11,.10); border-radius:14px; padding:10px; color:rgba(255,255,255,.9); }
-    .warnbox b{ color:rgba(255,255,255,.95); }
-  </style>
+</style>
 </head>
 <body>
+  <div class="top-loader" id="topLoader" aria-hidden="true"><div class="bar"></div></div>
   <header>
     <div class="wrap">
       <div class="topbar">
@@ -228,15 +380,27 @@
           <div class="logo" aria-hidden="true"></div>
           <div>
             <h1>CalorieCam</h1>
-            <p>Photo calorie estimation with AI vision + local log</p>
+            <p>Fast meal tracking from photos, kept local</p>
           </div>
         </div>
-        <nav class="nav" role="tablist" aria-label="Sections">
-          <button class="tab" role="tab" aria-selected="true" data-tab="capture">Capture</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="log">Log</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="stats">Stats</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="settings">Settings</button>
-        </nav>
+        <div class="top-actions">
+          <nav class="nav" role="tablist" aria-label="Sections">
+            <button class="tab" role="tab" aria-selected="true" data-tab="capture">Capture</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="log">Log</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="stats">Stats</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="settings">Settings</button>
+          </nav>
+          <button class="btn theme-toggle" id="themeToggle" type="button" aria-pressed="false" aria-label="Switch theme" title="Switch theme">
+            <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+            </svg>
+            <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 14.5a8.5 8.5 0 1 1-10.5-10.4a7 7 0 1 0 10.5 10.4z"></path>
+            </svg>
+            <span class="sr-only">Toggle theme</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -251,21 +415,21 @@
           <div class="card">
             <div class="hd">
               <div>
-                <h2>1) Take a photo</h2>
-                <div class="sub">Use your phone camera or choose an image.</div>
+                <h2>1) Add photos</h2>
+                <div class="sub">Use your phone camera or choose images.</div>
               </div>
-              <span class="badge accent" id="api-status">No API key</span>
+              <span class="badge accent" id="api-status">No key</span>
             </div>
             <div class="bd">
               <div class="row" style="align-items:flex-end">
                 <div style="flex:1 1 340px">
-                  <label>Photo</label>
+                  <label>Photos</label>
                   <div class="file-input-wrap">
-                    <input id="photo" class="file-input" type="file" accept="image/*" capture="environment" />
-                    <label for="photo" class="btn file-btn">Choose photo</label>
-                    <span class="file-name" id="photoName">No file chosen</span>
+                    <input id="photo" class="file-input" type="file" accept="image/*" capture="environment" multiple />
+                    <label for="photo" class="btn file-btn">Choose photos</label>
+                    <span class="file-name" id="photoName">No photos selected</span>
                   </div>
-                  <div class="hint">On iOS/Android, <span class="kbd">capture</span> should open the camera. For best results, use good lighting and include the whole plate.</div>
+                  <div class="hint">You can add multiple angles. On iOS/Android, <span class="kbd">capture</span> should open the camera.</div>
                 </div>
                 <div style="flex:1 1 220px">
                   <label>Meal type</label>
@@ -285,8 +449,8 @@
                 <div style="flex:1 1 520px">
                   <div class="preview" id="preview">
                     <div class="ph" id="previewPh">
-                      <div style="font-weight:700; color:var(--text); margin-bottom:6px;">No photo yet</div>
-                      <div class="hint">Pick an image or take a photo to preview it here.</div>
+                      <div style="font-weight:700; color:var(--text); margin-bottom:6px;">No photos yet</div>
+                      <div class="hint">Pick images or take photos to preview them here.</div>
                     </div>
                     <img id="previewImg" alt="Food preview" />
                   </div>
@@ -297,19 +461,18 @@
                   <div class="hint">If you know weights, brands, or packaging size, put it here. It helps a lot.</div>
                 </div>
               </div>
+              <div class="thumbs" id="previewThumbs" aria-label="Selected photos"></div>
 
               <div class="hr"></div>
 
               <div class="row" style="align-items:center">
                 <button class="btn primary" id="btnEstimate">Estimate calories</button>
-                <button class="btn" id="btnClearCapture" title="Clear current photo">Clear</button>
-                <span class="pill" id="imgInfo" style="display:none"><b>Image</b><span id="imgInfoText"></span></span>
+                <button class="btn" id="btnClearCapture" title="Clear current photos">Clear</button>
+                <span class="pill" id="imgInfo" style="display:none"><b>Photos</b><span id="imgInfoText"></span></span>
                 <span class="pill" id="usageInfo" style="display:none"><b>Usage</b><span id="usageInfoText"></span></span>
               </div>
-
-              <div id="captureWarn" class="warnbox" style="margin-top:12px; display:none">
-                <b>Heads up:</b> calling a vision API directly from the browser can expose your API key to anyone who can inspect network requests on this device.
-                For real use, prefer a tiny server/proxy that stores the key.
+              <div id="openrouterHint" class="hint" style="margin-top:10px; display:none">
+                Add your OpenRouter key in Settings to enable estimates.
               </div>
 
             </div>
@@ -335,7 +498,7 @@
 
               <div id="analysisMeta" class="hint" style="display:none"></div>
 
-              <div style="overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.08)">
+              <div style="overflow:auto; border-radius:14px; border:1px solid var(--line)">
                 <table class="table" id="itemsTable">
                   <thead>
                     <tr>
@@ -431,7 +594,7 @@
                 <div class="box"><div class="t">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
                 <div class="box"><div class="t">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
               </div>
-              <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.08)">
+              <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid var(--line)">
                 <table class="table" id="dailyMacroTable">
                   <thead>
                     <tr>
@@ -518,10 +681,6 @@
                 <li>If it is restaurant food, mention the dish name or chain in notes.</li>
                 <li>Adjust grams and macros in the table after the estimate.</li>
               </ol>
-              <div class="hr"></div>
-              <div class="warnbox">
-                <b>Not medical advice.</b> Nutrition estimates can be very wrong. Use this as a logging convenience, not a tool for medical decisions.
-              </div>
             </div>
           </div>
         </div>
@@ -534,22 +693,17 @@
           <div class="card">
             <div class="hd">
               <div>
-                <h2>Vision API & app settings</h2>
-                <div class="sub">Configure your API key/model and app preferences. Stored locally.</div>
+                <h2>API & app settings</h2>
+                <div class="sub">Configure your OpenRouter key/model and app preferences. Stored locally.</div>
               </div>
               <span class="pill" id="settingsStatus" style="display:none"><span class="dot ok"></span><span id="settingsStatusText"> Saved</span></span>
             </div>
             <div class="bd">
-              <div id="envWarn" class="warnbox" style="display:none; margin-bottom:12px">
-                <b>Storage warning:</b> localStorage is blocked (private mode) or you opened this via <span class="kbd">file://</span>.
-                Settings/log may not persist. Prefer hosting via <span class="kbd">http(s)</span>.
-              </div>
-
               <div class="row" style="align-items:flex-end">
                 <div style="flex:2 1 360px">
-                  <label>API key</label>
+                  <label>OpenRouter API key</label>
                   <input id="apiKey" type="password" placeholder="sk-or-v1…" autocomplete="off" />
-                  <div class="hint">If you use the app in-browser without a proxy, your key can be visible in network requests.</div>
+                  <div class="hint">Use your OpenRouter key for direct requests.</div>
                 </div>
                 <div style="flex:1 1 200px">
                   <label>&nbsp;</label>
@@ -682,6 +836,7 @@
 
     var LS_SETTINGS = 'calorieCam.settings.v1';
     var LS_ENTRIES  = 'calorieCam.entries.v1';
+    var LS_THEME    = 'calorieCam.theme.v1';
 
     function $(sel, el){ return (el || document).querySelector(sel); }
     function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
@@ -721,7 +876,8 @@
 
     // ---- Storage (localStorage fallback)
     var _memStore = {};
-    var _storageWarned = false;
+    var _themeMedia = null;
+    var _themeListener = null;
 
     function storageWorks(){
       try{
@@ -740,11 +896,6 @@
         return v ? JSON.parse(v) : fallback;
       } catch(err){
         if(Object.prototype.hasOwnProperty.call(_memStore, key)) return _memStore[key];
-        if(!_storageWarned){
-          _storageWarned = true;
-          try{ console.warn('localStorage read blocked:', err); } catch(e){}
-          toast('Storage is blocked', 'Settings/log may not persist (private mode or file://). Host via http(s).');
-        }
         return fallback;
       }
     }
@@ -754,11 +905,6 @@
         localStorage.setItem(key, JSON.stringify(value));
       } catch(err){
         _memStore[key] = value;
-        if(!_storageWarned){
-          _storageWarned = true;
-          try{ console.warn('localStorage write blocked:', err); } catch(e){}
-          toast('Storage is blocked', 'Settings/log will not persist unless you host via http(s) and disable private mode.');
-        }
       }
     }
 
@@ -780,11 +926,9 @@
         fatPerKg: 0.8
       },
       capture: {
-        file: null,
-        imageDataUrl: '',
-        imageThumbUrl: '',
-        width: 0,
-        height: 0
+        files: [],
+        images: [],
+        activeIndex: 0
       },
       current: {
         analysis: null,
@@ -795,6 +939,51 @@
       entries: []
     };
 
+    function systemTheme(){
+      return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme){
+      var t = (theme === 'dark') ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', t);
+      var btn = $('#themeToggle');
+      if(btn){
+        btn.setAttribute('aria-pressed', String(t === 'dark'));
+        btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+        btn.setAttribute('title', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      }
+    }
+
+    function toggleTheme(){
+      var current = document.documentElement.getAttribute('data-theme') || systemTheme();
+      var next = (current === 'dark') ? 'light' : 'dark';
+      saveLS(LS_THEME, next);
+      applyTheme(next);
+      renderTrend();
+      renderStats();
+    }
+
+    function initTheme(){
+      var saved = loadLS(LS_THEME, '');
+      if(saved === 'dark' || saved === 'light'){
+        applyTheme(saved);
+      } else {
+        applyTheme(systemTheme());
+        if(window.matchMedia){
+          _themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+          _themeListener = function(){
+            var savedNow = loadLS(LS_THEME, '');
+            if(savedNow === 'dark' || savedNow === 'light') return;
+            applyTheme(systemTheme());
+            renderTrend();
+            renderStats();
+          };
+          if(_themeMedia.addEventListener) _themeMedia.addEventListener('change', _themeListener);
+          else if(_themeMedia.addListener) _themeMedia.addListener(_themeListener);
+        }
+      }
+    }
+
     function init(){
       // Load persisted state
       var loadedSettings = loadLS(LS_SETTINGS, {});
@@ -804,10 +993,14 @@
       state.entries = loadLS(LS_ENTRIES, []);
       if(!Array.isArray(state.entries)) state.entries = [];
 
+      initTheme();
+
       // Tabs
       $$('.tab').forEach(function(btn){
         btn.addEventListener('click', function(){ selectTab(btn.getAttribute('data-tab')); });
       });
+      var themeBtn = $('#themeToggle');
+      if(themeBtn) themeBtn.addEventListener('click', toggleTheme);
       var brand = $('#brandHome');
       if(brand){
         brand.addEventListener('click', function(){ selectTab('capture'); window.scrollTo(0, 0); });
@@ -856,7 +1049,6 @@
       renderSettings();
       wireSettingsAutosave();
       syncApiStatus();
-      updateEnvWarning();
 
       // Date filters
       var today = new Date();
@@ -867,7 +1059,6 @@
       renderLog();
       renderTrend();
       renderStats();
-      updateSecurityWarning();
 
       var initialTab = normalizeTab((history.state && history.state.tab) ? history.state.tab : location.hash.slice(1));
       selectTab(initialTab, { skipPush:true });
@@ -899,74 +1090,133 @@
       if(tab === 'settings'){ renderSettings(); }
     }
 
-    function updateSecurityWarning(){
-      var show = Boolean(state.settings.apiKey) && !String(state.settings.proxyUrl || '').trim();
-      var el = $('#captureWarn');
-      if(el) el.style.display = show ? 'block' : 'none';
-    }
-
     function syncApiStatus(){
       var hasKey = Boolean(state.settings.apiKey);
       var usingProxy = Boolean(String(state.settings.proxyUrl || '').trim());
       var el = $('#api-status');
+      var hint = $('#openrouterHint');
       if(!el) return;
       if(usingProxy){
         el.textContent = 'Proxy enabled';
         el.classList.add('accent');
       } else if(hasKey){
-        el.textContent = 'API key set';
+        el.textContent = 'Key set';
         el.classList.add('accent');
       } else {
-        el.textContent = 'No API key';
+        el.textContent = 'No key';
         el.classList.remove('accent');
       }
-    }
-
-    function updateEnvWarning(){
-      var el = $('#envWarn');
-      if(!el) return;
-      var isFile = (location.protocol === 'file:' || location.origin === 'null');
-      var blocked = !storageWorks();
-      el.style.display = (isFile || blocked) ? 'block' : 'none';
+      if(hint) hint.style.display = (!hasKey && !usingProxy) ? 'block' : 'none';
     }
 
     function onPhoto(e){
-      var f = (e.target && e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+      var files = (e.target && e.target.files) ? Array.prototype.slice.call(e.target.files) : [];
       var nameEl = $('#photoName');
-      if(nameEl) nameEl.textContent = f ? f.name : 'No file chosen';
-      if(!f) return;
-      state.capture.file = f;
-      preprocessImage(f, state.settings.maxDim, state.settings.jpegQ).then(function(r){
-        state.capture.imageDataUrl = r.dataUrl;
-        state.capture.imageThumbUrl = r.thumbUrl;
-        state.capture.width = r.width;
-        state.capture.height = r.height;
-        showPreview(r.dataUrl);
-        $('#imgInfoText').textContent = ' ' + r.width + '×' + r.height + ', ' + (Math.round((r.dataUrl.length*3/4)/1024)) + ' KB approx';
-        $('#imgInfo').style.display = 'inline-flex';
-        toast('Photo ready', 'You can now estimate calories.');
+      if(nameEl){
+        if(!files.length) nameEl.textContent = 'No photos selected';
+        else nameEl.textContent = files.length + ' photo' + (files.length > 1 ? 's' : '') + ' selected';
+      }
+      if(!files.length) return;
+      state.capture.files = files;
+      state.capture.activeIndex = 0;
+
+      Promise.all(files.map(function(f){
+        return preprocessImage(f, state.settings.maxDim, state.settings.jpegQ).then(function(r){
+          return {
+            name: f.name || '',
+            dataUrl: r.dataUrl,
+            thumbUrl: r.thumbUrl,
+            width: r.width,
+            height: r.height,
+            fromLog: false
+          };
+        });
+      })).then(function(imgs){
+        state.capture.images = imgs;
+        setPreviewImages(imgs, 0);
+        updateImgInfo();
+        toast('Photos ready', 'You can now estimate calories.');
       }).catch(function(err){
         try{ console.error(err); } catch(e2){}
-        toast('Could not load image', String((err && err.message) ? err.message : err));
+        toast('Could not load images', String((err && err.message) ? err.message : err));
       });
     }
 
-    function showPreview(dataUrl){
+    function setPreviewImages(images, activeIndex){
       var img = $('#previewImg');
       var ph = $('#previewPh');
-      img.src = dataUrl;
+      var thumbs = $('#previewThumbs');
+      if(!images || !images.length){
+        img.src = '';
+        img.style.display = 'none';
+        ph.style.display = 'block';
+        if(thumbs){
+          thumbs.innerHTML = '';
+          thumbs.style.display = 'none';
+        }
+        return;
+      }
+
+      var idx = clamp(Number(activeIndex || 0), 0, images.length - 1);
+      var item = images[idx] || images[0];
+      img.src = item.dataUrl || item.thumbUrl;
       img.style.display = 'block';
       ph.style.display = 'none';
+
+      if(thumbs){
+        thumbs.innerHTML = '';
+        thumbs.style.display = 'flex';
+        images.forEach(function(it, i){
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'thumb' + (i === idx ? ' active' : '');
+          var im = document.createElement('img');
+          im.src = it.thumbUrl || it.dataUrl;
+          im.alt = 'Photo ' + (i + 1);
+          btn.appendChild(im);
+          btn.addEventListener('click', function(){
+            state.capture.activeIndex = i;
+            setPreviewImages(state.capture.images, i);
+            updateImgInfo();
+          });
+          thumbs.appendChild(btn);
+        });
+      }
+    }
+
+    function updateImgInfo(){
+      var info = $('#imgInfo');
+      var txt = $('#imgInfoText');
+      var images = state.capture.images || [];
+      if(!info || !txt) return;
+      if(!images.length){
+        info.style.display = 'none';
+        txt.textContent = '';
+        return;
+      }
+      var idx = clamp(Number(state.capture.activeIndex || 0), 0, images.length - 1);
+      var it = images[idx] || {};
+      var parts = [];
+      parts.push(images.length + ' photo' + (images.length > 1 ? 's' : ''));
+      if(it.width && it.height) parts.push(it.width + 'x' + it.height);
+      if(it.fromLog) parts.push('thumb from log');
+      txt.textContent = ' ' + parts.join(' · ');
+      info.style.display = 'inline-flex';
     }
 
     function clearCapture(){
-      state.capture = { file:null, imageDataUrl:'', imageThumbUrl:'', width:0, height:0 };
+      state.capture = { files:[], images:[], activeIndex:0 };
       state.current = { analysis:null, rawText:'', modelUsed:'', usage:null };
       $('#photo').value = '';
+      if($('#photoName')) $('#photoName').textContent = 'No photos selected';
       $('#portionNotes').value = '';
       $('#previewImg').src = '';
       $('#previewImg').style.display = 'none';
       $('#previewPh').style.display = 'block';
+      if($('#previewThumbs')){
+        $('#previewThumbs').innerHTML = '';
+        $('#previewThumbs').style.display = 'none';
+      }
       $('#imgInfo').style.display = 'none';
       $('#usageInfo').style.display = 'none';
       setAnalysis(null);
@@ -983,8 +1233,7 @@
       saveLS(LS_SETTINGS, state.settings);
       renderSettings();
       syncApiStatus();
-      updateSecurityWarning();
-      toast('API key removed');
+      toast('OpenRouter key removed');
     }
 
     function renderSettings(){
@@ -1004,7 +1253,6 @@
       if($('#fatPerKg')) $('#fatPerKg').value = (state.settings.fatPerKg != null ? state.settings.fatPerKg : 0.8);
       renderGoalsOut();
       updateMealTypeAutoHint();
-      updateEnvWarning();
     }
 
     function readSettingsFromUI(){
@@ -1042,7 +1290,6 @@
       saveLS(LS_SETTINGS, state.settings);
       renderSettings();
       syncApiStatus();
-      updateSecurityWarning();
       renderTotalsFromTable();
       if(prevShowKj !== Boolean(state.settings.showKj)){
         renderLog();
@@ -1167,7 +1414,6 @@
             required: ['calories','protein_g','carbs_g','fat_g']
           },
           assumptions: { type: 'array', items: { type: 'string' } },
-          warnings: { type: 'array', items: { type: 'string' } },
           overall_confidence: { type: 'number' }
         },
         required: ['detected_items','totals','overall_confidence']
@@ -1176,12 +1422,12 @@
 
     function buildPrompt(mealType, notes){
       var base =
-        'Analyze the provided food photo and estimate nutrition.\n\n' +
+        'Analyze the provided food photo(s) and estimate nutrition.\n\n' +
         'Return a breakdown of components (ingredients/items), with estimated grams, kcal, protein_g, carbs_g, fat_g per item.\n' +
         'Also include totals and confidence values (0..1).\n\n' +
         'Rules:\n' +
         '- Prefer realistic portions based on typical serving sizes.\n' +
-        '- If something is ambiguous, choose a plausible default and explain it in assumptions/warnings.\n' +
+        '- If something is ambiguous, choose a plausible default and explain it in assumptions.\n' +
         '- Do not invent brands unless clearly visible.\n' +
         '- If you see cooking oil/sauce, account for it as separate items when plausible.\n' +
         '- Round grams and macros sensibly (not too many decimals).\n' +
@@ -1308,15 +1554,22 @@
       }
     }
 
+    function setLoading(active){
+      var el = $('#topLoader');
+      if(!el) return;
+      if(active) el.classList.add('active');
+      else el.classList.remove('active');
+    }
+
     function estimate(){
-      if(!state.capture.imageDataUrl){
-        toast('Add a photo first');
+      if(!state.capture.images || !state.capture.images.length){
+        toast('Add photos first');
         return;
       }
       var hasKey = Boolean(state.settings.apiKey);
       var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
       if(!hasKey && !hasProxy){
-        toast('Missing API key', 'Go to Settings and set an API key or a proxy URL.');
+        toast('Missing OpenRouter key', 'Go to Settings and set an OpenRouter key or a proxy URL.');
         selectTab('settings');
         return;
       }
@@ -1328,22 +1581,24 @@
       $('#btnCopyJson').disabled = true;
       $('#btnShowRaw').disabled = true;
       $('#usageInfo').style.display = 'none';
+      setLoading(true);
 
       var mtInfo = getMealTypeInfo(new Date());
+
+      var imageParts = (state.capture.images || []).map(function(it){
+        return { type: 'image_url', image_url: { url: it.dataUrl || it.thumbUrl } };
+      });
 
       var body = {
         model: state.settings.model,
         messages: [
           {
             role: 'system',
-            content: 'You are a careful nutrition estimation assistant. You estimate calories and macros from a single image with uncertainty. Be conservative and explicit about assumptions. IMPORTANT: respond with valid JSON only.'
+            content: 'You are a careful nutrition estimation assistant. You estimate calories and macros from one or more images with uncertainty. Be conservative and explicit about assumptions. IMPORTANT: respond with valid JSON only.'
           },
           {
             role: 'user',
-            content: [
-              { type: 'text', text: buildPrompt(mtInfo.hint, $('#portionNotes').value) },
-              { type: 'image_url', image_url: { url: state.capture.imageDataUrl } }
-            ]
+            content: [{ type: 'text', text: buildPrompt(mtInfo.hint, $('#portionNotes').value) }].concat(imageParts)
           }
         ],
         temperature: 0.2
@@ -1393,17 +1648,14 @@
               { role: 'system', content: 'Return ONLY a JSON object. No markdown.' },
               {
                 role: 'user',
-                content: [
-                  { type: 'text', text: buildPrompt($('#mealType').value, $('#portionNotes').value) + '\nReturn ONLY valid JSON.' },
-                  { type: 'image_url', image_url: { url: state.capture.imageDataUrl } }
-                ]
+                content: [{ type: 'text', text: buildPrompt($('#mealType').value, $('#portionNotes').value) + '\nReturn ONLY valid JSON.' }].concat(imageParts)
               }
             ],
             temperature: 0.2,
             response_format: { type: 'json_object' },
             plugins: [{ id: 'response-healing' }]
           };
-          openRouterChat(body2).then(function(res2){
+          return openRouterChat(body2).then(function(res2){
             var norm2 = normalizeAnalysisResponse(res2);
             state.current.analysis = norm2.analysis;
             state.current.rawText = norm2.rawText;
@@ -1428,6 +1680,7 @@
       }).finally(function(){
         $('#btnEstimate').disabled = false;
         $('#btnEstimate').textContent = 'Estimate calories';
+        setLoading(false);
       });
     }
 
@@ -1526,7 +1779,6 @@
         detected_items: Array.isArray(obj.detected_items) ? obj.detected_items : (Array.isArray(obj.items) ? obj.items : []),
         totals: obj.totals || { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
         assumptions: Array.isArray(obj.assumptions) ? obj.assumptions : [],
-        warnings: Array.isArray(obj.warnings) ? obj.warnings : [],
         overall_confidence: Number(obj.overall_confidence != null ? obj.overall_confidence : 0.5)
       };
 
@@ -1684,22 +1936,15 @@
 
     function renderAssumptions(analysis){
       var box = $('#assumptionsBox');
-      var lines = [];
       var as = Array.isArray(analysis.assumptions) ? analysis.assumptions : [];
-      var ws = Array.isArray(analysis.warnings) ? analysis.warnings : [];
 
       if(as.length){
-        lines.push('<div style="font-weight:700; margin-bottom:6px">Assumptions</div>');
-        lines.push('<ul style="margin:0; padding-left:18px; color:var(--muted)">' + as.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>');
-      }
-      if(ws.length){
-        lines.push('<div style="font-weight:700; margin:10px 0 6px">Warnings</div>');
-        lines.push('<ul style="margin:0; padding-left:18px; color:var(--muted)">' + ws.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>');
-      }
-
-      if(lines.length){
         box.style.display = 'block';
-        box.innerHTML = '<div class="warnbox">' + lines.join('') + '</div>';
+        box.innerHTML =
+          '<div style="font-weight:700; margin-bottom:6px">Assumptions</div>' +
+          '<ul style="margin:0; padding-left:18px; color:var(--muted)">' +
+          as.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') +
+          '</ul>';
       } else {
         box.style.display = 'none';
         box.innerHTML = '';
@@ -1713,7 +1958,6 @@
         detected_items: state.current.analysis.detected_items,
         totals: state.current.analysis.totals,
         assumptions: state.current.analysis.assumptions,
-        warnings: state.current.analysis.warnings,
         overall_confidence: state.current.analysis.overall_confidence,
         model: state.current.modelUsed,
         usage: state.current.usage
@@ -1766,14 +2010,12 @@
         mealType: getMealTypeInfo(new Date()).value,
         title: analysis.meal_name || guessTitleFromItems(analysis.detected_items),
         notes: String($('#portionNotes').value || '').trim(),
-        imgThumb: state.capture.imageThumbUrl || '',
-        imgFull: '',
+        imgThumbs: (state.capture.images || []).map(function(it){ return it.thumbUrl || it.dataUrl; }),
         analysis: {
           meal_name: analysis.meal_name || '',
           detected_items: analysis.detected_items || [],
           totals: analysis.totals || {calories:0, protein_g:0, carbs_g:0, fat_g:0},
           assumptions: analysis.assumptions || [],
-          warnings: analysis.warnings || [],
           overall_confidence: (analysis.overall_confidence != null ? analysis.overall_confidence : 0.5)
         },
         model: state.current.modelUsed || state.settings.model,
@@ -1892,10 +2134,20 @@
       $('#portionNotes').value = e.notes || '';
       $('#mealType').value = e.mealType || 'lunch';
 
-      if(e.imgThumb){
-        showPreview(e.imgThumb);
-        $('#imgInfoText').textContent = ' (thumbnail from log)';
-        $('#imgInfo').style.display = 'inline-flex';
+      if(e.imgThumbs && e.imgThumbs.length){
+        state.capture.images = e.imgThumbs.map(function(url){
+          return { dataUrl: url, thumbUrl: url, width: 0, height: 0, fromLog: true };
+        });
+        state.capture.activeIndex = 0;
+        setPreviewImages(state.capture.images, 0);
+        updateImgInfo();
+        if($('#photoName')) $('#photoName').textContent = state.capture.images.length + ' photo' + (state.capture.images.length > 1 ? 's' : '') + ' from log';
+      } else if(e.imgThumb){
+        state.capture.images = [{ dataUrl: e.imgThumb, thumbUrl: e.imgThumb, width: 0, height: 0, fromLog: true }];
+        state.capture.activeIndex = 0;
+        setPreviewImages(state.capture.images, 0);
+        updateImgInfo();
+        if($('#photoName')) $('#photoName').textContent = '1 photo from log';
       }
 
       setAnalysis(state.current.analysis);
@@ -1921,7 +2173,6 @@
         ],
         totals: { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
         assumptions: ['Manual entry: adjust values.'],
-        warnings: [],
         overall_confidence: 0.7
       };
       setAnalysis(state.current.analysis);
@@ -2025,6 +2276,14 @@
       return arr;
     }
 
+    function cssVar(name, fallback){
+      var v = '';
+      try{
+        v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      } catch(e){}
+      return v || fallback;
+    }
+
     function drawBarChart(canvas, series, metric, label){
       metric = metric || 'calories';
       label = label || 'kcal';
@@ -2032,7 +2291,12 @@
       var w = canvas.width, h = canvas.height;
       ctx.clearRect(0,0,w,h);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      var chartBg = cssVar('--chart-bg', 'rgba(0,0,0,0.03)');
+      var chartGrid = cssVar('--chart-grid', 'rgba(0,0,0,0.06)');
+      var chartAxis = cssVar('--chart-axis', 'rgba(0,0,0,0.12)');
+      var chartText = cssVar('--chart-text', 'rgba(31,35,38,0.55)');
+      var chartTextStrong = cssVar('--chart-text-strong', 'rgba(31,35,38,0.8)');
+      ctx.fillStyle = chartBg;
       ctx.fillRect(0,0,w,h);
 
       var pad = {l:44, r:14, t:12, b:32};
@@ -2042,7 +2306,7 @@
       var maxV = 1;
       series.forEach(function(d){ maxV = Math.max(maxV, toNum(d[metric])); });
 
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.strokeStyle = chartAxis;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(pad.l, pad.t);
@@ -2050,13 +2314,13 @@
       ctx.lineTo(pad.l+innerW, pad.t+innerH);
       ctx.stroke();
 
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.fillStyle = chartText;
+      ctx.font = '12px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       var steps = 4;
       for(var i=0;i<=steps;i++){
         var y = pad.t + innerH - (i/steps)*innerH;
         var v = Math.round((i/steps)*maxV);
-        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.strokeStyle = chartGrid;
         ctx.beginPath();
         ctx.moveTo(pad.l, y);
         ctx.lineTo(pad.l+innerW, y);
@@ -2068,14 +2332,17 @@
       var gap = 6;
       var barW = Math.max(4, Math.floor((innerW - gap*(n-1)) / n));
 
+      var barA = cssVar('--accent', '#e46a4a');
+      var barB = cssVar('--accent2', '#1c7a7a');
+
       series.forEach(function(d, i){
         var v = toNum(d[metric]);
         var bh = (v / maxV) * innerH;
         var x = pad.l + i*(barW+gap);
         var y = pad.t + innerH - bh;
         var g = ctx.createLinearGradient(0, y, 0, pad.t+innerH);
-        g.addColorStop(0, 'rgba(124,92,255,0.85)');
-        g.addColorStop(1, 'rgba(45,212,191,0.55)');
+        g.addColorStop(0, barA);
+        g.addColorStop(1, barB);
         ctx.fillStyle = g;
         ctx.fillRect(x, y, barW, bh);
 
@@ -2083,16 +2350,16 @@
           ctx.save();
           ctx.translate(x + barW/2, pad.t+innerH+14);
           ctx.rotate(-0.6);
-          ctx.fillStyle = 'rgba(255,255,255,0.55)';
-          ctx.font = '11px ui-sans-serif, system-ui';
+          ctx.fillStyle = chartText;
+          ctx.font = '11px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
           var lab = String(d.date).slice(5);
           ctx.fillText(lab, -18, 0);
           ctx.restore();
         }
       });
 
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.font = '13px ui-sans-serif, system-ui';
+      ctx.fillStyle = chartTextStrong;
+      ctx.font = '13px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       ctx.fillText(label + ' by day', pad.l, 18);
     }
 
@@ -2106,13 +2373,20 @@
       var r = Math.min(w,h) * 0.28;
       var ring = r * 0.55;
 
-      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      var chartBg = cssVar('--chart-bg', 'rgba(0,0,0,0.03)');
+      var chartText = cssVar('--chart-text', 'rgba(31,35,38,0.6)');
+      var chartTextStrong = cssVar('--chart-text-strong', 'rgba(31,35,38,0.8)');
+      ctx.fillStyle = chartBg;
       ctx.fillRect(0,0,w,h);
 
+      var cProtein = cssVar('--accent2', '#1c7a7a');
+      var cCarb = cssVar('--accent', '#e46a4a');
+      var cFat = cssVar('--warn', '#c67c1c');
+
       var parts = [
-        {name:'Protein', v: protein/total, color:'rgba(45,212,191,0.85)'},
-        {name:'Carbs', v: carbs/total, color:'rgba(124,92,255,0.85)'},
-        {name:'Fat', v: fat/total, color:'rgba(245,158,11,0.85)'}
+        {name:'Protein', v: protein/total, color:cProtein},
+        {name:'Carbs', v: carbs/total, color:cCarb},
+        {name:'Fat', v: fat/total, color:cFat}
       ];
 
       var ang = -Math.PI/2;
@@ -2127,7 +2401,7 @@
       });
 
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(18,20,27,0.95)';
+      ctx.fillStyle = cssVar('--surface-3', 'rgba(255,249,238,0.95)');
       ctx.arc(cx, cy, r - ring/2 - 2, 0, Math.PI*2);
       ctx.fill();
 
@@ -2148,32 +2422,33 @@
       }
 
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.font = '700 12px ui-sans-serif, system-ui';
-      ctx.fillText('Macros', cx, cy - (fontSize + 8));
-
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.font = '600 ' + fontSize + 'px ui-sans-serif, system-ui';
+      ctx.fillStyle = chartTextStrong;
+      ctx.font = '700 11px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       var lineH = fontSize + 2;
-      var startY = cy - (lineH);
+      var labelY = cy - (lineH + 6);
+      ctx.fillText('Macros', cx, labelY);
+
+      ctx.fillStyle = chartText;
+      ctx.font = '600 ' + fontSize + 'px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
+      var startY = labelY + (lineH + 6) - (lineH);
       lines.forEach(function(t, i){
         ctx.fillText(t, cx, startY + (i * lineH));
       });
 
       ctx.textAlign = 'left';
-      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.font = '12px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       var y = 22;
       parts.forEach(function(p){
         ctx.fillStyle = p.color;
         ctx.fillRect(16, y-10, 12, 12);
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillStyle = chartText;
         ctx.fillText(p.name + ': ' + (p.v*100).toFixed(0) + '%', 36, y);
         y += 20;
       });
 
       ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.font = '13px ui-sans-serif, system-ui';
+      ctx.fillStyle = chartTextStrong;
+      ctx.font = '13px "IBM Plex Sans", "Source Sans 3", "Helvetica Neue", Arial, sans-serif';
       ctx.fillText('Macro split (grams)', 16, h-14);
     }
 
@@ -2256,7 +2531,7 @@
       saveSettings();
       var hasKey = Boolean(state.settings.apiKey);
       var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
-      if(!hasKey && !hasProxy){ toast('Set an API key or proxy URL first'); return; }
+      if(!hasKey && !hasProxy){ toast('Set an OpenRouter key or proxy URL first'); return; }
 
       $('#btnTest').disabled = true;
       $('#btnTest').textContent = 'Testing…';
