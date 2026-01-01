@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#f4f6f9" id="themeColor" />
   <title>CalorieCam</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <style>
@@ -191,12 +194,12 @@
       header .wrap{
         padding:4px calc(14px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
       }
-      .topbar{ gap:6px; }
-      .brand{ gap:8px; }
+      .topbar{ gap:10px; flex-wrap:wrap; align-items:center; }
+      .brand{ gap:8px; flex:1 1 100%; }
       .logo{ width:30px; height:30px; border-radius:9px; }
       .brand h1{ font-size:14px; }
       .brand p{ display:none; }
-      .top-actions{ gap:6px; flex-wrap:nowrap; }
+      .top-actions{ gap:8px; flex-wrap:nowrap; width:100%; justify-content:space-between; padding-right:2px; }
       .nav{
         gap:6px;
         flex-wrap:nowrap;
@@ -206,7 +209,7 @@
       }
       .nav::-webkit-scrollbar{ display:none; }
       .tab{ padding:7px 8px; font-size:11px; white-space:nowrap; }
-      .theme-toggle{ width:32px; height:32px; border-radius:10px; flex:0 0 auto; }
+      .theme-toggle{ width:32px; height:32px; border-radius:10px; flex:0 0 auto; margin-right:4px; }
     }
 
     main{ padding:24px 0 56px; }
@@ -1041,12 +1044,20 @@
     function applyTheme(theme){
       var t = (theme === 'dark') ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', t);
+      updateThemeColor();
       var btn = $('#themeToggle');
       if(btn){
         btn.setAttribute('aria-pressed', String(t === 'dark'));
         btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
         btn.setAttribute('title', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
       }
+    }
+
+    function updateThemeColor(){
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if(!meta) return;
+      var bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+      if(bg) meta.setAttribute('content', bg);
     }
 
     function toggleTheme(){
