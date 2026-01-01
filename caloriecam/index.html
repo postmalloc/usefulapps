@@ -103,7 +103,11 @@
       border-bottom:1px solid var(--border);
       padding-top: env(safe-area-inset-top);
     }
-    .wrap{ max-width:1080px; margin:0 auto; padding:16px; }
+    .wrap{
+      max-width:1080px;
+      margin:0 auto;
+      padding:16px calc(16px + env(safe-area-inset-right)) 16px calc(16px + env(safe-area-inset-left));
+    }
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
     .brand:focus-visible{ outline:2px solid rgba(228,106,74,.6); outline-offset:4px; border-radius:12px; }
@@ -173,7 +177,9 @@
       background: rgba(228,106,74,.12);
     }
     @media (max-width: 640px){
-      header .wrap{ padding:8px 10px; }
+      header .wrap{
+        padding:8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left));
+      }
       .topbar{ gap:6px; }
       .brand{ gap:8px; }
       .logo{ width:30px; height:30px; border-radius:9px; }
@@ -947,6 +953,14 @@
     var _themeMedia = null;
     var _themeListener = null;
 
+    function requestPersistentStorage(){
+      if(!navigator.storage || !navigator.storage.persist) return Promise.resolve(false);
+      return navigator.storage.persisted().then(function(isPersisted){
+        if(isPersisted) return true;
+        return navigator.storage.persist();
+      }).catch(function(){ return false; });
+    }
+
     function storageWorks(){
       try{
         var k = '__cc_test__' + String(Math.random()).slice(2);
@@ -1062,6 +1076,7 @@
       if(!Array.isArray(state.entries)) state.entries = [];
 
       initTheme();
+      requestPersistentStorage();
 
       // Tabs
       $$('.tab').forEach(function(btn){
