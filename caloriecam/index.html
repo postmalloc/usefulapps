@@ -1,0 +1,2377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CalorieCam — Photo Calorie Counter (AI Vision)</title>
+  <style>
+    :root{
+      --bg:#0b0c0f; --card:#12141b; --card2:#0f1117; --text:#e9ecf1; --muted:#a7afbf;
+      --accent:#7c5cff; --accent2:#2dd4bf; --danger:#ff5c7a; --ok:#22c55e; --warn:#f59e0b;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --r:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; font-family:var(--sans); background: radial-gradient(1200px 800px at 30% 10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(900px 700px at 90% 20%, rgba(45,212,191,.12), transparent 60%),
+      var(--bg);
+      color:var(--text);
+    }
+    a{ color:inherit; }
+    header{
+      position:sticky; top:0; z-index:50;
+      background: rgba(11,12,15,.7);
+      backdrop-filter: blur(14px);
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{ max-width:1080px; margin:0 auto; padding:16px; }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
+    .brand:focus-visible{ outline:2px solid rgba(124,92,255,.6); outline-offset:4px; border-radius:12px; }
+    .logo{
+      width:40px; height:40px; border-radius:12px;
+      background: linear-gradient(135deg, rgba(124,92,255,.9), rgba(45,212,191,.9));
+      box-shadow: 0 10px 30px rgba(124,92,255,.25);
+    }
+    .brand h1{ font-size:16px; margin:0; line-height:1.2; }
+    .brand p{ margin:0; color:var(--muted); font-size:12px; }
+
+    .nav{ display:flex; gap:8px; flex-wrap:wrap; }
+    .tab{
+      border:1px solid var(--border);
+      background: rgba(18,20,27,.55);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .tab[aria-selected="true"]{
+      border-color: rgba(124,92,255,.6);
+      box-shadow: 0 0 0 2px rgba(124,92,255,.18) inset;
+      background: rgba(124,92,255,.10);
+    }
+
+    main{ padding:18px 0 48px; }
+
+    .grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+
+    .card{
+      background: linear-gradient(180deg, rgba(18,20,27,.92), rgba(15,17,23,.92));
+      border:1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .card .hd h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .card .hd .sub{ color:var(--muted); font-size:12px; margin-top:2px; }
+    .card .bd{ padding:14px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > *{ flex:1 1 auto; }
+    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    input[type="text"], input[type="password"], input[type="number"], textarea, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      color:var(--text);
+      outline:none;
+    }
+    .file-input{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      border:0;
+    }
+    .file-input-wrap{ display:flex; align-items:center; gap:10px; }
+    .file-name{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
+    .file-btn{ min-width:140px; }
+    textarea{ resize:vertical; min-height:84px; }
+    input[type="range"]{ width:100%; }
+    .hint{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.35; }
+
+    .btn{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      user-select:none;
+    }
+    .btn.primary{ background: rgba(124,92,255,.20); border-color: rgba(124,92,255,.6); }
+    .btn.primary:hover{ background: rgba(124,92,255,.28); }
+    .btn.danger{ background: rgba(255,92,122,.16); border-color: rgba(255,92,122,.5); }
+    .btn.ok{ background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.45); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pill b{ color:var(--text); font-weight:600; }
+
+    .preview{
+      width:100%; aspect-ratio: 4/3; background: rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.20);
+      border-radius: 14px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: var(--muted);
+      position:relative;
+    }
+    .preview img{ width:100%; height:100%; object-fit:cover; display:none; }
+    .preview .ph{ padding:16px; text-align:center; }
+
+    .table{ width:100%; border-collapse:collapse; font-size:13px; overflow:hidden; }
+    .table th, .table td{ padding:10px 8px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align:top; }
+    .table th{ color:var(--muted); font-weight:600; text-align:left; font-size:12px; }
+    .table td input{ padding:8px 8px; border-radius:10px; }
+    .table td .small{ font-size:12px; color:var(--muted); margin-top:4px; }
+
+    .kpi{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+    @media (max-width: 700px){ .kpi{ grid-template-columns: repeat(2, 1fr); } }
+    .kpi .box{ padding:12px; border-radius:14px; border:1px solid var(--border); background: rgba(255,255,255,.04); }
+    .kpi .box .t{ color:var(--muted); font-size:12px; }
+    .kpi .box .v{ font-size:18px; margin-top:6px; font-weight:700; letter-spacing:.2px; }
+    .kpi-rows{ display:flex; flex-direction:column; gap:6px; }
+    .kpi-line{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:12px; }
+    .kpi-label{ color:var(--muted); font-size:11px; }
+    .kpi-value{ font-size:16px; font-weight:700; }
+
+    .loglist{ display:flex; flex-direction:column; gap:10px; }
+    .logitem{ padding:12px; border-radius:14px; border:1px solid var(--border); background: rgba(255,255,255,.04); }
+    .logitem .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .logitem .title{ font-weight:700; }
+    .logitem .meta{ color:var(--muted); font-size:12px; margin-top:4px; }
+    .logitem .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    details summary{ cursor:pointer; color:var(--text); }
+
+    .toast{
+      position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+      background: rgba(18,20,27,.95);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 14px;
+      padding: 10px 12px;
+      max-width: 92vw;
+      display:none;
+      z-index: 100;
+      font-size: 13px;
+    }
+    .toast.show{ display:block; }
+    .toast .muted{ color:var(--muted); font-size:12px; margin-top:4px; }
+
+    .mono{ font-family: var(--mono); font-size:12px; color:var(--muted); }
+    .hr{ height:1px; background: rgba(255,255,255,.08); margin: 12px 0; }
+
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid rgba(255,255,255,.10);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .dot{ width:8px; height:8px; border-radius:999px; background: var(--muted); opacity:.8; }
+    .dot.ok{ background: var(--ok); }
+
+    .canvasBox{ border:1px solid var(--border); border-radius:14px; padding:10px; background: rgba(255,255,255,.03); }
+
+    .kbd{ font-family: var(--mono); border:1px solid rgba(255,255,255,.14); padding:2px 6px; border-radius:8px; background: rgba(255,255,255,.03); color:var(--text); font-size:12px; }
+
+    .badge{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:var(--muted); }
+    .badge.accent{ border-color: rgba(124,92,255,.45); color: rgba(124,92,255,.95); background: rgba(124,92,255,.10); }
+
+    .warnbox{ border:1px solid rgba(245,158,11,.35); background: rgba(245,158,11,.10); border-radius:14px; padding:10px; color:rgba(255,255,255,.9); }
+    .warnbox b{ color:rgba(255,255,255,.95); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand" id="brandHome" role="button" tabindex="0" aria-label="Go to Capture">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>CalorieCam</h1>
+            <p>Photo calorie estimation with AI vision + local log</p>
+          </div>
+        </div>
+        <nav class="nav" role="tablist" aria-label="Sections">
+          <button class="tab" role="tab" aria-selected="true" data-tab="capture">Capture</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="log">Log</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="stats">Stats</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="settings">Settings</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+
+      <!-- CAPTURE -->
+      <section id="tab-capture" class="tabpane" role="tabpanel">
+        <div class="grid">
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>1) Take a photo</h2>
+                <div class="sub">Use your phone camera or choose an image.</div>
+              </div>
+              <span class="badge accent" id="api-status">No API key</span>
+            </div>
+            <div class="bd">
+              <div class="row" style="align-items:flex-end">
+                <div style="flex:1 1 340px">
+                  <label>Photo</label>
+                  <div class="file-input-wrap">
+                    <input id="photo" class="file-input" type="file" accept="image/*" capture="environment" />
+                    <label for="photo" class="btn file-btn">Choose photo</label>
+                    <span class="file-name" id="photoName">No file chosen</span>
+                  </div>
+                  <div class="hint">On iOS/Android, <span class="kbd">capture</span> should open the camera. For best results, use good lighting and include the whole plate.</div>
+                </div>
+                <div style="flex:1 1 220px">
+                  <label>Meal type</label>
+                  <select id="mealType">
+                    <option value="auto">Auto</option>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                    <option value="drink">Drink</option>
+                  </select>
+                  <div class="hint" id="mealTypeAutoHint">Auto chooses based on your local time.</div>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px; align-items:flex-start">
+                <div style="flex:1 1 520px">
+                  <div class="preview" id="preview">
+                    <div class="ph" id="previewPh">
+                      <div style="font-weight:700; color:var(--text); margin-bottom:6px;">No photo yet</div>
+                      <div class="hint">Pick an image or take a photo to preview it here.</div>
+                    </div>
+                    <img id="previewImg" alt="Food preview" />
+                  </div>
+                </div>
+                <div style="flex:1 1 280px">
+                  <label>Portion notes (optional)</label>
+                  <textarea id="portionNotes" placeholder="Example: 2 slices of pizza, 330ml cola, 1 tbsp olive oil; plate is ~25cm; this is a standard 250g yogurt cup..."></textarea>
+                  <div class="hint">If you know weights, brands, or packaging size, put it here. It helps a lot.</div>
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="row" style="align-items:center">
+                <button class="btn primary" id="btnEstimate">Estimate calories</button>
+                <button class="btn" id="btnClearCapture" title="Clear current photo">Clear</button>
+                <span class="pill" id="imgInfo" style="display:none"><b>Image</b><span id="imgInfoText"></span></span>
+                <span class="pill" id="usageInfo" style="display:none"><b>Usage</b><span id="usageInfoText"></span></span>
+              </div>
+
+              <div id="captureWarn" class="warnbox" style="margin-top:12px; display:none">
+                <b>Heads up:</b> calling a vision API directly from the browser can expose your API key to anyone who can inspect network requests on this device.
+                For real use, prefer a tiny server/proxy that stores the key.
+              </div>
+
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>2) Breakdown</h2>
+                <div class="sub">Editable. Totals update instantly. Save to your log when it looks right.</div>
+              </div>
+              <div class="row" style="justify-content:flex-end">
+                <button class="btn ok" id="btnSave" disabled>Save to log</button>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="kpi" style="margin-bottom:12px">
+                <div class="box"><div class="t">🔥 Calories</div><div class="v" id="kpiCal">—</div></div>
+                <div class="box"><div class="t">🥩 Protein</div><div class="v" id="kpiP">—</div></div>
+                <div class="box"><div class="t">🍞 Carbs</div><div class="v" id="kpiC">—</div></div>
+                <div class="box"><div class="t">🧈 Fat</div><div class="v" id="kpiF">—</div></div>
+              </div>
+
+              <div id="analysisMeta" class="hint" style="display:none"></div>
+
+              <div style="overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.08)">
+                <table class="table" id="itemsTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:160px">Item</th>
+                      <th style="min-width:120px">Portion</th>
+                      <th style="min-width:90px">g</th>
+                      <th style="min-width:100px">kcal</th>
+                      <th style="min-width:90px">P</th>
+                      <th style="min-width:90px">C</th>
+                      <th style="min-width:90px">F</th>
+                      <th style="min-width:120px">Confidence</th>
+                      <th style="min-width:120px">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="itemsBody">
+                    <tr><td colspan="9" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <button class="btn" id="btnAddRow" disabled>Add item</button>
+                <button class="btn" id="btnCopyJson" disabled>Copy JSON</button>
+                <button class="btn" id="btnShowRaw" disabled>Show raw model output</button>
+              </div>
+
+              <div id="assumptionsBox" style="margin-top:12px; display:none"></div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- LOG -->
+      <section id="tab-log" class="tabpane" role="tabpanel" hidden>
+        <div class="grid">
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Your log</h2>
+                <div class="sub">Stored locally in your browser.</div>
+              </div>
+              <div class="row" style="justify-content:flex-end">
+                <button class="btn" id="btnExport">Export</button>
+                <button class="btn" id="btnImport">Import</button>
+                <button class="btn danger" id="btnWipe">Wipe all</button>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="row" style="align-items:flex-end">
+                <div style="flex:2 1 280px">
+                  <label>Search</label>
+                  <input id="search" type="text" placeholder="pizza, salad, latte, ..." />
+                </div>
+                <div style="flex:1 1 180px">
+                  <label>From</label>
+                  <input id="fromDate" type="date" />
+                </div>
+                <div style="flex:1 1 180px">
+                  <label>To</label>
+                  <input id="toDate" type="date" />
+                </div>
+              </div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn" id="btnAddManual">Add manual entry</button>
+                <span class="pill"><b>Total entries</b> <span id="entryCount">0</span></span>
+              </div>
+              <div class="hr"></div>
+              <div class="loglist" id="logList"></div>
+              <div id="logEmpty" class="hint" style="display:none">No entries yet. Use the Capture tab to add one.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Daily totals</h2>
+                <div class="sub">Last 14 days calories trend (local).</div>
+              </div>
+              <div class="row" style="justify-content:flex-end">
+                <span class="chip"><span class="dot ok"></span>Food log</span>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="canvasBox">
+                <canvas id="trend" width="720" height="360" style="width:100%; height:auto"></canvas>
+              </div>
+              <div class="hr"></div>
+              <div class="kpi">
+                <div class="box"><div class="t">Today</div><div class="v" id="kpiToday">—</div></div>
+                <div class="box"><div class="t">7-day avg</div><div class="v" id="kpiAvg7">—</div></div>
+                <div class="box"><div class="t">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
+                <div class="box"><div class="t">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
+              </div>
+              <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid rgba(255,255,255,.08)">
+                <table class="table" id="dailyMacroTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:120px">Date</th>
+                      <th style="min-width:140px">Calories</th>
+                      <th style="min-width:110px">Protein</th>
+                      <th style="min-width:110px">Carbs</th>
+                      <th style="min-width:110px">Fat</th>
+                      <th style="min-width:110px">Vs goal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dailyMacroBody">
+                    <tr><td colspan="6" style="color:var(--muted); padding:14px">No data yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="hint" id="goalsMiniHint" style="margin-top:8px"></div>
+              <div class="hint" style="margin-top:8px">Tip: calorie estimates are uncertain. Use the editable breakdown to adjust portions.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section id="tab-stats" class="tabpane" role="tabpanel" hidden>
+        <div class="grid">
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Stats</h2>
+                <div class="sub">Macros split + top foods (best effort from model estimates).</div>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="row" style="align-items:flex-end">
+                <div>
+                  <label>Window</label>
+                  <select id="statsWindow">
+                    <option value="7">Last 7 days</option>
+                    <option value="14" selected>Last 14 days</option>
+                    <option value="30">Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last 365 days</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Show</label>
+                  <select id="statsMetric">
+                    <option value="calories" selected>Calories</option>
+                    <option value="protein_g">Protein (g)</option>
+                    <option value="carbs_g">Carbs (g)</option>
+                    <option value="fat_g">Fat (g)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="hr"></div>
+              <div class="canvasBox">
+                <canvas id="byDay" width="720" height="360" style="width:100%; height:auto"></canvas>
+              </div>
+              <div class="hr"></div>
+              <div class="canvasBox">
+                <canvas id="macroDonut" width="720" height="360" style="width:100%; height:auto"></canvas>
+              </div>
+              <div class="hr"></div>
+              <div>
+                <div style="font-weight:700; margin-bottom:8px">Top items (by calories)</div>
+                <div id="topItems" class="hint">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Accuracy checklist</h2>
+                <div class="sub">Make the model less wrong.</div>
+              </div>
+            </div>
+            <div class="bd">
+              <ol style="margin:0; padding-left:18px; color:var(--muted); line-height:1.5">
+                <li>Include the whole plate + drink in the frame.</li>
+                <li>Use a reference object (fork, known bottle size) or write it in notes.</li>
+                <li>Tell it how many pieces, slices, or cups.</li>
+                <li>If it is restaurant food, mention the dish name or chain in notes.</li>
+                <li>Adjust grams and macros in the table after the estimate.</li>
+              </ol>
+              <div class="hr"></div>
+              <div class="warnbox">
+                <b>Not medical advice.</b> Nutrition estimates can be very wrong. Use this as a logging convenience, not a tool for medical decisions.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="tab-settings" class="tabpane" role="tabpanel" hidden>
+        <div class="grid">
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Vision API & app settings</h2>
+                <div class="sub">Configure your API key/model and app preferences. Stored locally.</div>
+              </div>
+              <span class="pill" id="settingsStatus" style="display:none"><span class="dot ok"></span><span id="settingsStatusText"> Saved</span></span>
+            </div>
+            <div class="bd">
+              <div id="envWarn" class="warnbox" style="display:none; margin-bottom:12px">
+                <b>Storage warning:</b> localStorage is blocked (private mode) or you opened this via <span class="kbd">file://</span>.
+                Settings/log may not persist. Prefer hosting via <span class="kbd">http(s)</span>.
+              </div>
+
+              <div class="row" style="align-items:flex-end">
+                <div style="flex:2 1 360px">
+                  <label>API key</label>
+                  <input id="apiKey" type="password" placeholder="sk-or-v1…" autocomplete="off" />
+                  <div class="hint">If you use the app in-browser without a proxy, your key can be visible in network requests.</div>
+                </div>
+                <div style="flex:1 1 200px">
+                  <label>&nbsp;</label>
+                  <button class="btn danger" id="btnForgetKey" type="button">Forget key</button>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px; align-items:flex-end">
+                <div style="flex:2 1 360px">
+                  <label>Proxy URL (optional)</label>
+                  <input id="proxyUrl" type="text" placeholder="https://your-proxy.example.com/chat" />
+                  <div class="hint">If set, requests go through your proxy and your key stays server-side.</div>
+                </div>
+                <div style="flex:1 1 220px">
+                  <label>Model</label>
+                  <select id="model">
+                    <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+                  </select>
+                  <div class="hint">Load models to see more options.</div>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <button class="btn" id="btnLoadModels" type="button">Load model list</button>
+                <button class="btn" id="btnTest" type="button">Test connection</button>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="row" style="align-items:flex-end">
+                <div style="flex:1 1 180px">
+                  <label>Max image size (px)</label>
+                  <input id="maxDim" type="number" min="480" max="2048" step="64" />
+                </div>
+                <div style="flex:1 1 180px">
+                  <label>JPEG quality</label>
+                  <input id="jpegQ" type="number" min="0.4" max="0.95" step="0.05" />
+                </div>
+                <div style="flex:1 1 200px">
+                  <label>Structured output</label>
+                  <select id="structured">
+                    <option value="on">On</option>
+                    <option value="off">Off</option>
+                  </select>
+                </div>
+                <div style="flex:1 1 200px">
+                  <label>Show kJ</label>
+                  <select id="showKj">
+                    <option value="off">Off</option>
+                    <option value="on">On</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px">
+                <button class="btn primary" id="btnSaveSettings" type="button">Save settings</button>
+                <button class="btn" id="btnResetApp" type="button">Reset UI</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Nutrition goals</h2>
+                <div class="sub">Targets based on weight, activity, and weight-loss timeline (heuristic).</div>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="row">
+                <div style="flex:1 1 160px">
+                  <label>Current weight (kg)</label>
+                  <input id="weightKg" type="number" min="0" step="0.1" />
+                </div>
+                <div style="flex:1 1 220px">
+                  <label>Activity level</label>
+                  <select id="activityLevel">
+                    <option value="sedentary">Sedentary</option>
+                    <option value="light">Light (1–3x/week)</option>
+                    <option value="moderate" selected>Moderate (3–5x/week)</option>
+                    <option value="active">Active (6–7x/week)</option>
+                    <option value="athlete">Athlete / very active</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <div style="flex:1 1 220px">
+                  <label>Weight loss target (kg)</label>
+                  <input id="lossKg" type="number" min="0" step="0.1" />
+                  <div class="hint">Set 0 for maintenance.</div>
+                </div>
+                <div style="flex:1 1 220px">
+                  <label>Time to reach target (weeks)</label>
+                  <input id="lossWeeks" type="number" min="1" step="1" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <div style="flex:1 1 220px">
+                  <label>Protein target (g/kg/day)</label>
+                  <input id="proteinPerKg" type="number" min="0.8" max="3" step="0.1" />
+                </div>
+                <div style="flex:1 1 220px">
+                  <label>Fat target (g/kg/day)</label>
+                  <input id="fatPerKg" type="number" min="0.4" max="2" step="0.1" />
+                </div>
+              </div>
+
+              <div class="hr"></div>
+              <div id="goalsOut" class="hint">—</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // =======================
+    // CalorieCam — single-file app
+    // =======================
+
+    // NOTE: This file intentionally avoids newer JS syntax (optional chaining, nullish coalescing, catch without binding)
+    // because those can throw *parse-time* SyntaxError in some browsers.
+
+    var LS_SETTINGS = 'calorieCam.settings.v1';
+    var LS_ENTRIES  = 'calorieCam.entries.v1';
+
+    function $(sel, el){ return (el || document).querySelector(sel); }
+    function $$(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
+
+    function nowISO(){ return new Date().toISOString(); }
+
+    function toLocalDateInput(d){
+      var x = new Date(d);
+      var tzOff = x.getTimezoneOffset() * 60000;
+      var local = new Date(x.getTime() - tzOff);
+      return local.toISOString().slice(0,10);
+    }
+
+    function uuid(){
+      try{
+        if(window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      } catch(e){}
+      return 'id-' + Math.random().toString(16).slice(2) + '-' + Date.now();
+    }
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, function(c){
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+      });
+    }
+
+    function toast(msg, sub){
+      var t = $('#toast');
+      if(!t) return;
+      t.innerHTML = '<div>' + escapeHtml(msg) + '</div>' + (sub ? '<div class="muted">' + escapeHtml(sub) + '</div>' : '');
+      t.classList.add('show');
+      if(toast._tm) clearTimeout(toast._tm);
+      toast._tm = setTimeout(function(){ t.classList.remove('show'); }, 3400);
+    }
+
+    // ---- Storage (localStorage fallback)
+    var _memStore = {};
+    var _storageWarned = false;
+
+    function storageWorks(){
+      try{
+        var k = '__cc_test__' + String(Math.random()).slice(2);
+        localStorage.setItem(k, '1');
+        localStorage.removeItem(k);
+        return true;
+      } catch(e){
+        return false;
+      }
+    }
+
+    function loadLS(key, fallback){
+      try{
+        var v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch(err){
+        if(Object.prototype.hasOwnProperty.call(_memStore, key)) return _memStore[key];
+        if(!_storageWarned){
+          _storageWarned = true;
+          try{ console.warn('localStorage read blocked:', err); } catch(e){}
+          toast('Storage is blocked', 'Settings/log may not persist (private mode or file://). Host via http(s).');
+        }
+        return fallback;
+      }
+    }
+
+    function saveLS(key, value){
+      try{
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch(err){
+        _memStore[key] = value;
+        if(!_storageWarned){
+          _storageWarned = true;
+          try{ console.warn('localStorage write blocked:', err); } catch(e){}
+          toast('Storage is blocked', 'Settings/log will not persist unless you host via http(s) and disable private mode.');
+        }
+      }
+    }
+
+    // ---- App state
+    var state = {
+      settings: {
+        apiKey: '',
+        model: 'openai/gpt-4o-mini',
+        proxyUrl: '',
+        maxDim: 1280,
+        jpegQ: 0.75,
+        structured: true,
+        showKj: false,
+        weightKg: 75,
+        activityLevel: 'moderate',
+        lossKg: 0,
+        lossWeeks: 8,
+        proteinPerKg: 1.6,
+        fatPerKg: 0.8
+      },
+      capture: {
+        file: null,
+        imageDataUrl: '',
+        imageThumbUrl: '',
+        width: 0,
+        height: 0
+      },
+      current: {
+        analysis: null,
+        rawText: '',
+        modelUsed: '',
+        usage: null
+      },
+      entries: []
+    };
+
+    function init(){
+      // Load persisted state
+      var loadedSettings = loadLS(LS_SETTINGS, {});
+      for(var k in loadedSettings){
+        if(Object.prototype.hasOwnProperty.call(loadedSettings, k)) state.settings[k] = loadedSettings[k];
+      }
+      state.entries = loadLS(LS_ENTRIES, []);
+      if(!Array.isArray(state.entries)) state.entries = [];
+
+      // Tabs
+      $$('.tab').forEach(function(btn){
+        btn.addEventListener('click', function(){ selectTab(btn.getAttribute('data-tab')); });
+      });
+      var brand = $('#brandHome');
+      if(brand){
+        brand.addEventListener('click', function(){ selectTab('capture'); window.scrollTo(0, 0); });
+        brand.addEventListener('keydown', function(e){
+          if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectTab('capture'); window.scrollTo(0, 0); }
+        });
+      }
+      window.addEventListener('popstate', function(e){
+        var tab = normalizeTab((e.state && e.state.tab) ? e.state.tab : location.hash.slice(1));
+        selectTab(tab, { skipPush:true });
+      });
+
+      // Capture
+      $('#photo').addEventListener('change', onPhoto);
+      $('#btnClearCapture').addEventListener('click', clearCapture);
+      $('#btnEstimate').addEventListener('click', estimate);
+      $('#mealType').addEventListener('change', updateMealTypeAutoHint);
+      setInterval(function(){ if(($('#mealType') && $('#mealType').value) === 'auto') updateMealTypeAutoHint(); }, 60000);
+      $('#btnSave').addEventListener('click', saveEntry);
+      $('#btnAddRow').addEventListener('click', function(){
+        addItemRow({name:'', portion:'', grams:0, calories:0, protein_g:0, carbs_g:0, fat_g:0, confidence:0.5, notes:''});
+      });
+      $('#btnCopyJson').addEventListener('click', copyJson);
+      $('#btnShowRaw').addEventListener('click', showRaw);
+
+      // Log
+      $('#search').addEventListener('input', renderLog);
+      $('#fromDate').addEventListener('change', renderLog);
+      $('#toDate').addEventListener('change', renderLog);
+      $('#btnExport').addEventListener('click', exportData);
+      $('#btnImport').addEventListener('click', importData);
+      $('#btnWipe').addEventListener('click', wipeAll);
+      $('#btnAddManual').addEventListener('click', addManual);
+
+      // Stats
+      $('#statsWindow').addEventListener('change', renderStats);
+      $('#statsMetric').addEventListener('change', renderStats);
+
+      // Settings
+      $('#btnSaveSettings').addEventListener('click', saveSettings);
+      $('#btnTest').addEventListener('click', testConnection);
+      $('#btnLoadModels').addEventListener('click', loadModels);
+      $('#btnResetApp').addEventListener('click', resetUI);
+      $('#btnForgetKey').addEventListener('click', forgetKey);
+
+      renderSettings();
+      wireSettingsAutosave();
+      syncApiStatus();
+      updateEnvWarning();
+
+      // Date filters
+      var today = new Date();
+      $('#toDate').value = toLocalDateInput(today);
+      var from = new Date(today); from.setDate(from.getDate() - 14);
+      $('#fromDate').value = toLocalDateInput(from);
+
+      renderLog();
+      renderTrend();
+      renderStats();
+      updateSecurityWarning();
+
+      var initialTab = normalizeTab((history.state && history.state.tab) ? history.state.tab : location.hash.slice(1));
+      selectTab(initialTab, { skipPush:true });
+      pushTabState(initialTab, true);
+
+      runSelfTests();
+    }
+
+    function normalizeTab(name){
+      var allowed = ['capture','log','stats','settings'];
+      var n = String(name || '').trim();
+      return allowed.indexOf(n) !== -1 ? n : 'capture';
+    }
+
+    function pushTabState(name, replace){
+      var url = location.pathname + location.search + '#' + name;
+      var st = { tab: name };
+      if(replace) history.replaceState(st, '', url);
+      else history.pushState(st, '', url);
+    }
+
+    function selectTab(name, opts){
+      var tab = normalizeTab(name);
+      $$('.tab').forEach(function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === tab)); });
+      $$('.tabpane').forEach(function(p){ p.hidden = !(p.id.slice(-tab.length) === tab); });
+      if(!opts || !opts.skipPush) pushTabState(tab, false);
+      if(tab === 'log'){ renderLog(); renderTrend(); }
+      if(tab === 'stats'){ renderStats(); }
+      if(tab === 'settings'){ renderSettings(); }
+    }
+
+    function updateSecurityWarning(){
+      var show = Boolean(state.settings.apiKey) && !String(state.settings.proxyUrl || '').trim();
+      var el = $('#captureWarn');
+      if(el) el.style.display = show ? 'block' : 'none';
+    }
+
+    function syncApiStatus(){
+      var hasKey = Boolean(state.settings.apiKey);
+      var usingProxy = Boolean(String(state.settings.proxyUrl || '').trim());
+      var el = $('#api-status');
+      if(!el) return;
+      if(usingProxy){
+        el.textContent = 'Proxy enabled';
+        el.classList.add('accent');
+      } else if(hasKey){
+        el.textContent = 'API key set';
+        el.classList.add('accent');
+      } else {
+        el.textContent = 'No API key';
+        el.classList.remove('accent');
+      }
+    }
+
+    function updateEnvWarning(){
+      var el = $('#envWarn');
+      if(!el) return;
+      var isFile = (location.protocol === 'file:' || location.origin === 'null');
+      var blocked = !storageWorks();
+      el.style.display = (isFile || blocked) ? 'block' : 'none';
+    }
+
+    function onPhoto(e){
+      var f = (e.target && e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+      var nameEl = $('#photoName');
+      if(nameEl) nameEl.textContent = f ? f.name : 'No file chosen';
+      if(!f) return;
+      state.capture.file = f;
+      preprocessImage(f, state.settings.maxDim, state.settings.jpegQ).then(function(r){
+        state.capture.imageDataUrl = r.dataUrl;
+        state.capture.imageThumbUrl = r.thumbUrl;
+        state.capture.width = r.width;
+        state.capture.height = r.height;
+        showPreview(r.dataUrl);
+        $('#imgInfoText').textContent = ' ' + r.width + '×' + r.height + ', ' + (Math.round((r.dataUrl.length*3/4)/1024)) + ' KB approx';
+        $('#imgInfo').style.display = 'inline-flex';
+        toast('Photo ready', 'You can now estimate calories.');
+      }).catch(function(err){
+        try{ console.error(err); } catch(e2){}
+        toast('Could not load image', String((err && err.message) ? err.message : err));
+      });
+    }
+
+    function showPreview(dataUrl){
+      var img = $('#previewImg');
+      var ph = $('#previewPh');
+      img.src = dataUrl;
+      img.style.display = 'block';
+      ph.style.display = 'none';
+    }
+
+    function clearCapture(){
+      state.capture = { file:null, imageDataUrl:'', imageThumbUrl:'', width:0, height:0 };
+      state.current = { analysis:null, rawText:'', modelUsed:'', usage:null };
+      $('#photo').value = '';
+      $('#portionNotes').value = '';
+      $('#previewImg').src = '';
+      $('#previewImg').style.display = 'none';
+      $('#previewPh').style.display = 'block';
+      $('#imgInfo').style.display = 'none';
+      $('#usageInfo').style.display = 'none';
+      setAnalysis(null);
+      toast('Cleared');
+    }
+
+    function resetUI(){
+      clearCapture();
+      toast('UI reset');
+    }
+
+    function forgetKey(){
+      state.settings.apiKey = '';
+      saveLS(LS_SETTINGS, state.settings);
+      renderSettings();
+      syncApiStatus();
+      updateSecurityWarning();
+      toast('API key removed');
+    }
+
+    function renderSettings(){
+      $('#apiKey').value = state.settings.apiKey || '';
+      ensureModelOption(state.settings.model || 'openai/gpt-4o-mini');
+      $('#model').value = state.settings.model || 'openai/gpt-4o-mini';
+      $('#proxyUrl').value = state.settings.proxyUrl || '';
+      $('#maxDim').value = state.settings.maxDim || 1280;
+      $('#jpegQ').value = String(typeof state.settings.jpegQ === 'number' ? state.settings.jpegQ : 0.75);
+      $('#structured').value = state.settings.structured ? 'on' : 'off';
+      $('#showKj').value = state.settings.showKj ? 'on' : 'off';
+      $('#weightKg').value = (state.settings.weightKg != null ? state.settings.weightKg : 75);
+      if($('#activityLevel')) $('#activityLevel').value = state.settings.activityLevel || 'moderate';
+      if($('#lossKg')) $('#lossKg').value = (state.settings.lossKg != null ? state.settings.lossKg : 0);
+      if($('#lossWeeks')) $('#lossWeeks').value = (state.settings.lossWeeks != null ? state.settings.lossWeeks : 8);
+      if($('#proteinPerKg')) $('#proteinPerKg').value = (state.settings.proteinPerKg != null ? state.settings.proteinPerKg : 1.6);
+      if($('#fatPerKg')) $('#fatPerKg').value = (state.settings.fatPerKg != null ? state.settings.fatPerKg : 0.8);
+      renderGoalsOut();
+      updateMealTypeAutoHint();
+      updateEnvWarning();
+    }
+
+    function readSettingsFromUI(){
+      return {
+        apiKey: String($('#apiKey').value || '').trim(),
+        model: String($('#model').value || '').trim() || 'openai/gpt-4o-mini',
+        proxyUrl: String($('#proxyUrl').value || '').trim(),
+        maxDim: clamp(Number($('#maxDim').value || 1280), 480, 2048),
+        jpegQ: clamp(Number($('#jpegQ').value || 0.75), 0.4, 0.95),
+        structured: ($('#structured').value === 'on'),
+        showKj: ($('#showKj').value === 'on'),
+        weightKg: clamp(Number(($('#weightKg') && $('#weightKg').value) ? $('#weightKg').value : (state.settings.weightKg || 0)), 0, 400),
+        activityLevel: String(($('#activityLevel') && $('#activityLevel').value) ? $('#activityLevel').value : (state.settings.activityLevel || 'moderate')),
+        lossKg: clamp(Number(($('#lossKg') && $('#lossKg').value) ? $('#lossKg').value : (state.settings.lossKg || 0)), 0, 100),
+        lossWeeks: clamp(Number(($('#lossWeeks') && $('#lossWeeks').value) ? $('#lossWeeks').value : (state.settings.lossWeeks || 8)), 1, 520),
+        proteinPerKg: clamp(Number(($('#proteinPerKg') && $('#proteinPerKg').value) ? $('#proteinPerKg').value : (state.settings.proteinPerKg || 1.6)), 0.8, 3.0),
+        fatPerKg: clamp(Number(($('#fatPerKg') && $('#fatPerKg').value) ? $('#fatPerKg').value : (state.settings.fatPerKg || 0.8)), 0.4, 2.0)
+      };
+    }
+
+    function ensureModelOption(value){
+      var sel = $('#model');
+      if(!sel || !value) return;
+      var exists = Array.prototype.slice.call(sel.options).some(function(o){ return o.value === value; });
+      if(exists) return;
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      sel.appendChild(opt);
+    }
+
+    function applySettings(next, showToast){
+      var prevShowKj = Boolean(state.settings.showKj);
+      state.settings = Object.assign({}, state.settings, next);
+      saveLS(LS_SETTINGS, state.settings);
+      renderSettings();
+      syncApiStatus();
+      updateSecurityWarning();
+      renderTotalsFromTable();
+      if(prevShowKj !== Boolean(state.settings.showKj)){
+        renderLog();
+        renderTrend();
+        renderStats();
+      }
+
+      if(showToast){
+        $('#settingsStatus').style.display = 'inline-flex';
+        $('#settingsStatusText').textContent = ' Saved';
+        setTimeout(function(){ $('#settingsStatus').style.display = 'none'; }, 1600);
+        toast('Settings saved');
+      }
+    }
+
+    function saveSettings(){
+      applySettings(readSettingsFromUI(), true);
+    }
+
+    function saveSettingsSilent(){
+      applySettings(readSettingsFromUI(), false);
+    }
+
+    function wireSettingsAutosave(){
+      if(wireSettingsAutosave._wired) return;
+      wireSettingsAutosave._wired = true;
+      var ids = [
+        'apiKey','model','proxyUrl','maxDim','jpegQ','structured','showKj','weightKg',
+        'activityLevel','lossKg','lossWeeks','proteinPerKg','fatPerKg'
+      ];
+      ids.forEach(function(id){
+        var el = $('#' + id);
+        if(!el) return;
+        el.addEventListener('input', saveSettingsSilent);
+        el.addEventListener('change', saveSettingsSilent);
+      });
+    }
+
+    function preprocessImage(file, maxDim, jpegQ){
+      return readFileAsDataURL(file).then(function(dataUrl){
+        return loadImage(dataUrl).then(function(img){
+          var main = drawToCanvas(img, maxDim);
+          var mainDataUrl = main.canvas.toDataURL('image/jpeg', jpegQ);
+          var thumb = drawToCanvas(img, 480);
+          var thumbUrl = thumb.canvas.toDataURL('image/jpeg', 0.7);
+          return { dataUrl: mainDataUrl, thumbUrl: thumbUrl, width: main.width, height: main.height };
+        });
+      });
+    }
+
+    function readFileAsDataURL(file){
+      return new Promise(function(resolve, reject){
+        var r = new FileReader();
+        r.onerror = function(){ reject(new Error('FileReader error')); };
+        r.onload = function(){ resolve(String(r.result)); };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function loadImage(src){
+      return new Promise(function(resolve, reject){
+        var img = new Image();
+        img.onload = function(){ resolve(img); };
+        img.onerror = function(){ reject(new Error('Image decode failed')); };
+        img.src = src;
+      });
+    }
+
+    function drawToCanvas(img, maxDim){
+      var w0 = img.naturalWidth || img.width;
+      var h0 = img.naturalHeight || img.height;
+      var scale = Math.min(1, maxDim / Math.max(w0, h0));
+      var w = Math.max(1, Math.round(w0 * scale));
+      var h = Math.max(1, Math.round(h0 * scale));
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, w, h);
+      return { canvas: canvas, width:w, height:h };
+    }
+
+    // ---- Vision API schema and prompt
+    var mealSchema = {
+      name: 'meal_analysis',
+      strict: true,
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          meal_name: { type: 'string' },
+          detected_items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                name: { type: 'string' },
+                portion: { type: 'string' },
+                grams: { type: 'number' },
+                calories: { type: 'number' },
+                protein_g: { type: 'number' },
+                carbs_g: { type: 'number' },
+                fat_g: { type: 'number' },
+                confidence: { type: 'number' },
+                notes: { type: 'string' }
+              },
+              required: ['name','grams','calories','protein_g','carbs_g','fat_g','confidence']
+            }
+          },
+          totals: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              calories: { type: 'number' },
+              protein_g: { type: 'number' },
+              carbs_g: { type: 'number' },
+              fat_g: { type: 'number' }
+            },
+            required: ['calories','protein_g','carbs_g','fat_g']
+          },
+          assumptions: { type: 'array', items: { type: 'string' } },
+          warnings: { type: 'array', items: { type: 'string' } },
+          overall_confidence: { type: 'number' }
+        },
+        required: ['detected_items','totals','overall_confidence']
+      }
+    };
+
+    function buildPrompt(mealType, notes){
+      var base =
+        'Analyze the provided food photo and estimate nutrition.\n\n' +
+        'Return a breakdown of components (ingredients/items), with estimated grams, kcal, protein_g, carbs_g, fat_g per item.\n' +
+        'Also include totals and confidence values (0..1).\n\n' +
+        'Rules:\n' +
+        '- Prefer realistic portions based on typical serving sizes.\n' +
+        '- If something is ambiguous, choose a plausible default and explain it in assumptions/warnings.\n' +
+        '- Do not invent brands unless clearly visible.\n' +
+        '- If you see cooking oil/sauce, account for it as separate items when plausible.\n' +
+        '- Round grams and macros sensibly (not too many decimals).\n' +
+        '- Meal type hint: ' + mealType + '.\n';
+
+      var extra = (notes && String(notes).trim())
+        ? ('\nUser portion notes: ' + String(notes).trim() + '\n')
+        : '';
+
+      return base + extra;
+    }
+
+    // ---- Meal type inference (local time)
+    function inferMealType(d){
+      var dt = d ? new Date(d) : new Date();
+      var h = dt.getHours() + (dt.getMinutes()/60);
+      if(h >= 5 && h < 10) return { value:'breakfast', hint:'Breakfast' };
+      if(h >= 10 && h < 11.5) return { value:'snack', hint:'Snack (between breakfast and lunch)' };
+      if(h >= 11.5 && h < 15) return { value:'lunch', hint:'Lunch' };
+      if(h >= 15 && h < 18) return { value:'snack', hint:'Snack (between lunch and dinner)' };
+      if(h >= 18 && h < 21.5) return { value:'dinner', hint:'Dinner' };
+      return { value:'snack', hint:'Snack (late)' };
+    }
+
+    function getMealTypeInfo(d){
+      var sel = ($('#mealType') && $('#mealType').value) ? $('#mealType').value : 'auto';
+      if(sel && sel !== 'auto') return { value: sel, hint: sel };
+      return inferMealType(d);
+    }
+
+    function updateMealTypeAutoHint(){
+      var el = $('#mealTypeAutoHint');
+      if(!el) return;
+      var sel = ($('#mealType') && $('#mealType').value) ? $('#mealType').value : 'auto';
+      var dt = new Date();
+      if(sel === 'auto'){
+        var inf = inferMealType(dt);
+        el.textContent = 'Auto: ' + inf.hint + ' · ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      } else {
+        el.textContent = 'Manual: ' + capitalize(sel);
+      }
+    }
+
+    // ---- Goal setting (simple heuristic)
+    function computeGoals(){
+      var w = toNum(state.settings.weightKg);
+      if(!(w > 0)) return null;
+      var activity = String(state.settings.activityLevel || 'moderate');
+      var factorMap = { sedentary:28, light:30, moderate:33, active:36, athlete:40 };
+      var factor = factorMap[activity] || 33;
+      var maintenance = w * factor;
+
+      var lossKg = Math.max(0, toNum(state.settings.lossKg));
+      var weeks = Math.max(1, toNum(state.settings.lossWeeks));
+      var deficit = 0;
+      if(lossKg > 0) deficit = (lossKg * 7700) / (weeks * 7);
+      deficit = clamp(deficit, 0, 1000);
+
+      var targetCalories = clamp(maintenance - deficit, 1200, 6000);
+
+      var pPerKg = clamp(toNum(state.settings.proteinPerKg), 0.8, 3.0);
+      var fPerKg = clamp(toNum(state.settings.fatPerKg), 0.4, 2.0);
+      var protein_g = w * pPerKg;
+      var fat_g = w * fPerKg;
+      var remaining = targetCalories - (protein_g*4 + fat_g*9);
+      var carbs_g = Math.max(0, remaining/4);
+
+      return {
+        weightKg: w,
+        activity: activity,
+        factor: factor,
+        maintenance: Math.round(maintenance),
+        deficit: Math.round(deficit),
+        targetCalories: Math.round(targetCalories),
+        protein_g: round1(protein_g),
+        carbs_g: round1(carbs_g),
+        fat_g: round1(fat_g)
+      };
+    }
+
+    function renderGoalsOut(){
+      var out = $('#goalsOut');
+      if(!out) return;
+      var g = computeGoals();
+      if(!g){ out.innerHTML = 'Enter your current weight to compute daily goals.'; return; }
+
+      var lines = [];
+      lines.push('<div style="font-weight:700; color:rgba(255,255,255,.92); margin-bottom:6px">Suggested daily goals</div>');
+      lines.push('<div>Maintenance (rough): <b>' + escapeHtml(formatKcal(g.maintenance)) + '</b> <span class="muted">(~' + g.factor + ' kcal/kg, ' + escapeHtml(g.activity) + ')</span></div>');
+      if(g.deficit > 0){
+        lines.push('<div>Deficit: <b>' + escapeHtml(formatKcal(g.deficit)) + '</b> / day <span class="muted">(to lose ' + round1(toNum(state.settings.lossKg)) + ' kg in ' + round1(toNum(state.settings.lossWeeks)) + ' weeks)</span></div>');
+      }
+      lines.push('<div>Calorie target: <b>' + escapeHtml(formatKcal(g.targetCalories)) + '</b></div>');
+      lines.push('<div>Macros: <b>P ' + g.protein_g + 'g</b> · <b>C ' + g.carbs_g + 'g</b> · <b>F ' + g.fat_g + 'g</b></div>');
+      lines.push('<div class="hint" style="margin-top:8px">Heuristic only (not medical advice). Adjust based on your actual weight trend and how you feel.</div>');
+      out.innerHTML = lines.join('');
+    }
+
+    function renderDailyMacroTable(series){
+      var tb = $('#dailyMacroBody');
+      if(!tb) return;
+      var g = computeGoals();
+      if(!series || !series.length){
+        tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted); padding:14px">No data yet.</td></tr>';
+        return;
+      }
+      tb.innerHTML = series.map(function(d){
+        var pct = g ? Math.round((toNum(d.calories) / Math.max(1, g.targetCalories)) * 100) : null;
+        var vs = g ? (pct + '%') : '—';
+        return '<tr>' +
+          '<td>' + escapeHtml(String(d.date)) + '</td>' +
+          '<td>' + escapeHtml(formatKcal(d.calories)) + '</td>' +
+          '<td>' + round1(d.protein_g) + ' g</td>' +
+          '<td>' + round1(d.carbs_g) + ' g</td>' +
+          '<td>' + round1(d.fat_g) + ' g</td>' +
+          '<td>' + escapeHtml(vs) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      var hint = $('#goalsMiniHint');
+      if(hint){
+        if(g){ hint.textContent = 'Goal: ' + g.targetCalories + ' kcal · P ' + g.protein_g + 'g · C ' + g.carbs_g + 'g · F ' + g.fat_g + 'g'; }
+        else { hint.textContent = 'Set your goals in Settings to see goal comparisons.'; }
+      }
+    }
+
+    function estimate(){
+      if(!state.capture.imageDataUrl){
+        toast('Add a photo first');
+        return;
+      }
+      var hasKey = Boolean(state.settings.apiKey);
+      var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
+      if(!hasKey && !hasProxy){
+        toast('Missing API key', 'Go to Settings and set an API key or a proxy URL.');
+        selectTab('settings');
+        return;
+      }
+
+      $('#btnEstimate').disabled = true;
+      $('#btnEstimate').textContent = 'Estimating…';
+      $('#btnSave').disabled = true;
+      $('#btnAddRow').disabled = true;
+      $('#btnCopyJson').disabled = true;
+      $('#btnShowRaw').disabled = true;
+      $('#usageInfo').style.display = 'none';
+
+      var mtInfo = getMealTypeInfo(new Date());
+
+      var body = {
+        model: state.settings.model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a careful nutrition estimation assistant. You estimate calories and macros from a single image with uncertainty. Be conservative and explicit about assumptions. IMPORTANT: respond with valid JSON only.'
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: buildPrompt(mtInfo.hint, $('#portionNotes').value) },
+              { type: 'image_url', image_url: { url: state.capture.imageDataUrl } }
+            ]
+          }
+        ],
+        temperature: 0.2
+      };
+
+      if(state.settings.structured){
+        body.response_format = { type: 'json_schema', json_schema: mealSchema };
+        body.plugins = [{ id: 'response-healing' }];
+      }
+
+      openRouterChat(body).then(function(res){
+        var norm = normalizeAnalysisResponse(res);
+        state.current.analysis = norm.analysis;
+        state.current.rawText = norm.rawText;
+        state.current.modelUsed = norm.modelUsed;
+        state.current.usage = norm.usage;
+        setAnalysis(norm.analysis);
+
+        if(norm.usage){
+          var parts = [];
+          if(isFinite(norm.usage.prompt_tokens)) parts.push('prompt ' + norm.usage.prompt_tokens);
+          if(isFinite(norm.usage.completion_tokens)) parts.push('completion ' + norm.usage.completion_tokens);
+          if(isFinite(norm.usage.total_tokens)) parts.push('total ' + norm.usage.total_tokens);
+          $('#usageInfoText').textContent = ' ' + parts.join(' · ');
+          $('#usageInfo').style.display = 'inline-flex';
+        }
+
+        $('#analysisMeta').style.display = 'block';
+        var conf = clamp(Number(norm.analysis && norm.analysis.overall_confidence != null ? norm.analysis.overall_confidence : 0), 0, 1);
+        var confLabel = conf >= 0.75 ? 'High' : (conf >= 0.45 ? 'Medium' : 'Low');
+        $('#analysisMeta').innerHTML = 'Model: <span class="mono">' + escapeHtml(norm.modelUsed || state.settings.model) + '</span> · Overall confidence: <b>' + confLabel + '</b> (' + conf.toFixed(2) + ')';
+
+        $('#btnSave').disabled = false;
+        $('#btnAddRow').disabled = false;
+        $('#btnCopyJson').disabled = false;
+        $('#btnShowRaw').disabled = false;
+
+        toast('Estimate ready', 'Review the breakdown and edit portions if needed.');
+      }).catch(function(err){
+        try{ console.error(err); } catch(e){}
+        // Fallback: if structured fails, try json_object once
+        if(state.settings.structured){
+          toast('Structured output failed', 'Retrying with fallback parsing…');
+          var body2 = {
+            model: state.settings.model,
+            messages: [
+              { role: 'system', content: 'Return ONLY a JSON object. No markdown.' },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: buildPrompt($('#mealType').value, $('#portionNotes').value) + '\nReturn ONLY valid JSON.' },
+                  { type: 'image_url', image_url: { url: state.capture.imageDataUrl } }
+                ]
+              }
+            ],
+            temperature: 0.2,
+            response_format: { type: 'json_object' },
+            plugins: [{ id: 'response-healing' }]
+          };
+          openRouterChat(body2).then(function(res2){
+            var norm2 = normalizeAnalysisResponse(res2);
+            state.current.analysis = norm2.analysis;
+            state.current.rawText = norm2.rawText;
+            state.current.modelUsed = norm2.modelUsed;
+            state.current.usage = norm2.usage;
+            setAnalysis(norm2.analysis);
+            $('#analysisMeta').style.display = 'block';
+            $('#analysisMeta').innerHTML = 'Model: <span class="mono">' + escapeHtml(norm2.modelUsed || state.settings.model) + '</span> · (fallback parsing)';
+            $('#btnSave').disabled = false;
+            $('#btnAddRow').disabled = false;
+            $('#btnCopyJson').disabled = false;
+            $('#btnShowRaw').disabled = false;
+            toast('Estimate ready (fallback)');
+          }).catch(function(err2){
+            toast('Vision request failed', String((err2 && err2.message) ? err2.message : err2));
+            $('#analysisMeta').style.display = 'none';
+          });
+        } else {
+          toast('Vision request failed', String((err && err.message) ? err.message : err));
+          $('#analysisMeta').style.display = 'none';
+        }
+      }).finally(function(){
+        $('#btnEstimate').disabled = false;
+        $('#btnEstimate').textContent = 'Estimate calories';
+      });
+    }
+
+    function openRouterChat(body){
+      var proxy = String(state.settings.proxyUrl || '').trim();
+      var url = proxy || 'https://openrouter.ai/api/v1/chat/completions';
+
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Title': 'CalorieCam'
+      };
+      if(!proxy){
+        headers['Authorization'] = 'Bearer ' + state.settings.apiKey;
+        if(location.origin && location.origin !== 'null'){
+          headers['HTTP-Referer'] = location.origin;
+        }
+      }
+
+      return fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body)
+      }).then(function(r){
+        return r.text().then(function(txt){
+          if(!r.ok){
+            var extra = '';
+            try{
+              var j = JSON.parse(txt);
+              if(j && j.error && j.error.message) extra = ' — ' + j.error.message;
+            } catch(e){}
+            throw new Error('HTTP ' + r.status + extra);
+          }
+          try{
+            return JSON.parse(txt);
+          } catch(e2){
+            throw new Error('Response was not JSON');
+          }
+        });
+      });
+    }
+
+    function safeParseJson(text){
+      try{ return JSON.parse(text); } catch(e){}
+      var s = String(text);
+      var first = s.indexOf('{');
+      var last = s.lastIndexOf('}');
+      if(first >= 0 && last > first){
+        var slice = s.slice(first, last+1);
+        try{ return JSON.parse(slice); } catch(e2){}
+      }
+      return null;
+    }
+
+    function toNum(v){
+      var n = Number(v);
+      return isFinite(n) ? n : 0;
+    }
+
+    function round1(n){ return Math.round(n*10)/10; }
+
+    function sumFromItems(items){
+      var sum = { calories:0, protein_g:0, carbs_g:0, fat_g:0 };
+      (items || []).forEach(function(it){
+        sum.calories += toNum(it.calories);
+        sum.protein_g += toNum(it.protein_g);
+        sum.carbs_g += toNum(it.carbs_g);
+        sum.fat_g += toNum(it.fat_g);
+      });
+      return {
+        calories: Math.round(sum.calories),
+        protein_g: round1(sum.protein_g),
+        carbs_g: round1(sum.carbs_g),
+        fat_g: round1(sum.fat_g)
+      };
+    }
+
+    function normalizeAnalysisResponse(resJson){
+      var modelUsed = (resJson && resJson.model) ? resJson.model : '';
+      var usage = (resJson && resJson.usage) ? resJson.usage : null;
+      var content = resJson && resJson.choices && resJson.choices[0] && resJson.choices[0].message ? resJson.choices[0].message.content : null;
+      if(content == null) throw new Error('No message content in response');
+
+      var rawText = '';
+      var obj = null;
+      if(typeof content === 'string'){
+        rawText = content;
+        obj = safeParseJson(content);
+      } else if(typeof content === 'object'){
+        obj = content;
+        rawText = JSON.stringify(content);
+      }
+      if(!obj || typeof obj !== 'object') throw new Error('Could not parse model JSON');
+
+      var analysis = {
+        meal_name: String(obj.meal_name || ''),
+        detected_items: Array.isArray(obj.detected_items) ? obj.detected_items : (Array.isArray(obj.items) ? obj.items : []),
+        totals: obj.totals || { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
+        assumptions: Array.isArray(obj.assumptions) ? obj.assumptions : [],
+        warnings: Array.isArray(obj.warnings) ? obj.warnings : [],
+        overall_confidence: Number(obj.overall_confidence != null ? obj.overall_confidence : 0.5)
+      };
+
+      analysis.detected_items = (analysis.detected_items || []).map(function(it){
+        return {
+          name: String(it.name || ''),
+          portion: String(it.portion || ''),
+          grams: toNum(it.grams),
+          calories: toNum(it.calories),
+          protein_g: toNum(it.protein_g),
+          carbs_g: toNum(it.carbs_g),
+          fat_g: toNum(it.fat_g),
+          confidence: clamp(toNum(it.confidence), 0, 1),
+          notes: String(it.notes || '')
+        };
+      });
+
+      analysis.totals = {
+        calories: toNum(analysis.totals.calories),
+        protein_g: toNum(analysis.totals.protein_g),
+        carbs_g: toNum(analysis.totals.carbs_g),
+        fat_g: toNum(analysis.totals.fat_g)
+      };
+
+      var s = sumFromItems(analysis.detected_items);
+      var totalsLooksEmpty = !(analysis.totals.calories > 0) && (analysis.detected_items.length > 0);
+      if(totalsLooksEmpty) analysis.totals = s;
+
+      return {analysis: analysis, rawText: rawText, modelUsed: modelUsed, usage: usage};
+    }
+
+    // ---- Render analysis
+    function setAnalysis(analysis){
+      var body = $('#itemsBody');
+      body.innerHTML = '';
+
+      if(!analysis){
+        body.innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>';
+        $('#kpiCal').textContent = '—';
+        $('#kpiP').textContent = '—';
+        $('#kpiC').textContent = '—';
+        $('#kpiF').textContent = '—';
+        $('#assumptionsBox').style.display = 'none';
+        $('#analysisMeta').style.display = 'none';
+        return;
+      }
+
+      var items = Array.isArray(analysis.detected_items) ? analysis.detected_items : [];
+      if(items.length === 0){
+        body.innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No items detected. Try adding portion notes and re-running.</td></tr>';
+      } else {
+        items.forEach(function(it){ addItemRow(it); });
+      }
+
+      renderTotalsFromTable();
+      renderAssumptions(analysis);
+    }
+
+    function numOrEmpty(n){
+      var v = Number(n);
+      return (isFinite(v) && v !== 0) ? String(v) : '';
+    }
+
+    function addItemRow(it){
+      var body = $('#itemsBody');
+      if(body.querySelector('td[colspan="9"]')) body.innerHTML = '';
+
+      var tr = document.createElement('tr');
+      tr.innerHTML = '' +
+        '<td><input type="text" value="' + escapeHtml(it.name || '') + '" data-k="name" placeholder="item" />' +
+        '  <div class="small"><input type="text" value="' + escapeHtml(it.notes || '') + '" data-k="notes" placeholder="notes" /></div>' +
+        '</td>' +
+        '<td><input type="text" value="' + escapeHtml(it.portion || '') + '" data-k="portion" placeholder="e.g. 1 cup" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.grams) + '" min="0" step="1" data-k="grams" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.calories) + '" min="0" step="1" data-k="calories" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.protein_g) + '" min="0" step="0.1" data-k="protein_g" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.carbs_g) + '" min="0" step="0.1" data-k="carbs_g" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.fat_g) + '" min="0" step="0.1" data-k="fat_g" /></td>' +
+        '<td><input type="number" value="' + clamp(toNum(it.confidence),0,1) + '" min="0" max="1" step="0.05" data-k="confidence" /></td>' +
+        '<td>' +
+        '  <button class="btn" data-act="dup">Duplicate</button>' +
+        '  <button class="btn danger" data-act="del">Delete</button>' +
+        '</td>';
+
+      $$('input', tr).forEach(function(inp){
+        inp.addEventListener('input', function(){ renderTotalsFromTable(); });
+      });
+
+      tr.addEventListener('click', function(e){
+        var btn = e.target.closest ? e.target.closest('button') : null;
+        if(!btn) return;
+        var act = btn.getAttribute('data-act');
+        if(act === 'del'){
+          tr.remove();
+          if($('#itemsBody').children.length === 0){
+            $('#itemsBody').innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No items. Add one.</td></tr>';
+          }
+          renderTotalsFromTable();
+        }
+        if(act === 'dup'){
+          var x = rowToItem(tr);
+          addItemRow(x);
+          renderTotalsFromTable();
+        }
+      });
+
+      body.appendChild(tr);
+    }
+
+    function rowToItem(tr){
+      function get(k){
+        var el = tr.querySelector('[data-k="' + k + '"]');
+        return el ? el.value : '';
+      }
+      return {
+        name: String(get('name')).trim(),
+        portion: String(get('portion')).trim(),
+        grams: toNum(get('grams')),
+        calories: toNum(get('calories')),
+        protein_g: toNum(get('protein_g')),
+        carbs_g: toNum(get('carbs_g')),
+        fat_g: toNum(get('fat_g')),
+        confidence: clamp(toNum(get('confidence')), 0, 1),
+        notes: String(get('notes')).trim()
+      };
+    }
+
+    function tableItems(){
+      var rows = $$('#itemsBody tr').filter(function(r){ return r.querySelector('input[data-k="name"]'); });
+      return rows.map(rowToItem).filter(function(it){
+        return it.name || it.calories || it.grams || it.protein_g || it.carbs_g || it.fat_g;
+      });
+    }
+
+    function formatKcal(kcal){
+      var k = Math.round(toNum(kcal));
+      if(!state.settings.showKj) return k + ' kcal';
+      var kj = Math.round(k * 4.184);
+      return k + ' kcal (' + kj + ' kJ)';
+    }
+
+    function renderTotalsFromTable(){
+      var items = tableItems();
+      var totals = sumFromItems(items);
+      $('#kpiCal').textContent = formatKcal(totals.calories);
+      $('#kpiP').textContent = round1(totals.protein_g) + ' g';
+      $('#kpiC').textContent = round1(totals.carbs_g) + ' g';
+      $('#kpiF').textContent = round1(totals.fat_g) + ' g';
+
+      if(state.current.analysis){
+        state.current.analysis.detected_items = items;
+        state.current.analysis.totals = totals;
+      }
+    }
+
+    function renderAssumptions(analysis){
+      var box = $('#assumptionsBox');
+      var lines = [];
+      var as = Array.isArray(analysis.assumptions) ? analysis.assumptions : [];
+      var ws = Array.isArray(analysis.warnings) ? analysis.warnings : [];
+
+      if(as.length){
+        lines.push('<div style="font-weight:700; margin-bottom:6px">Assumptions</div>');
+        lines.push('<ul style="margin:0; padding-left:18px; color:var(--muted)">' + as.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>');
+      }
+      if(ws.length){
+        lines.push('<div style="font-weight:700; margin:10px 0 6px">Warnings</div>');
+        lines.push('<ul style="margin:0; padding-left:18px; color:var(--muted)">' + ws.map(function(x){ return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>');
+      }
+
+      if(lines.length){
+        box.style.display = 'block';
+        box.innerHTML = '<div class="warnbox">' + lines.join('') + '</div>';
+      } else {
+        box.style.display = 'none';
+        box.innerHTML = '';
+      }
+    }
+
+    function copyJson(){
+      if(!state.current.analysis){ toast('Nothing to copy'); return; }
+      var payload = {
+        meal_name: state.current.analysis.meal_name,
+        detected_items: state.current.analysis.detected_items,
+        totals: state.current.analysis.totals,
+        assumptions: state.current.analysis.assumptions,
+        warnings: state.current.analysis.warnings,
+        overall_confidence: state.current.analysis.overall_confidence,
+        model: state.current.modelUsed,
+        usage: state.current.usage
+      };
+
+      var txt = JSON.stringify(payload, null, 2);
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt);
+        toast('Copied JSON');
+      } else {
+        // Fallback
+        var ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand('copy'); toast('Copied JSON'); }
+        catch(e){ toast('Copy failed', 'Your browser blocked clipboard access.'); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    function showRaw(){
+      if(!state.current.rawText){ toast('No raw output'); return; }
+      var txt = state.current.rawText;
+      var win = window.open('', '_blank');
+      if(!win){ toast('Popup blocked', 'Allow popups to view raw output.'); return; }
+      win.document.write('<!doctype html><meta charset="utf-8"><title>Raw model output</title><pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;padding:16px;">' + escapeHtml(txt) + '</pre>');
+      win.document.close();
+    }
+
+    // ---- Save / Log
+    function guessTitleFromItems(items){
+      var first = null;
+      (items || []).some(function(x){ if(x && x.name){ first = x.name; return true; } return false; });
+      return first ? capitalize(first) : 'Meal';
+    }
+
+    function capitalize(s){
+      s = String(s || '');
+      return s ? (s.charAt(0).toUpperCase() + s.slice(1)) : s;
+    }
+
+    function saveEntry(){
+      var analysis = state.current.analysis;
+      if(!analysis){ toast('No analysis to save'); return; }
+
+      var entry = {
+        id: uuid(),
+        ts: nowISO(),
+        mealType: getMealTypeInfo(new Date()).value,
+        title: analysis.meal_name || guessTitleFromItems(analysis.detected_items),
+        notes: String($('#portionNotes').value || '').trim(),
+        imgThumb: state.capture.imageThumbUrl || '',
+        imgFull: '',
+        analysis: {
+          meal_name: analysis.meal_name || '',
+          detected_items: analysis.detected_items || [],
+          totals: analysis.totals || {calories:0, protein_g:0, carbs_g:0, fat_g:0},
+          assumptions: analysis.assumptions || [],
+          warnings: analysis.warnings || [],
+          overall_confidence: (analysis.overall_confidence != null ? analysis.overall_confidence : 0.5)
+        },
+        model: state.current.modelUsed || state.settings.model,
+        usage: state.current.usage || null
+      };
+
+      state.entries.unshift(entry);
+      saveLS(LS_ENTRIES, state.entries);
+      toast('Saved to log');
+      renderLog();
+      renderTrend();
+      renderStats();
+      selectTab('log');
+    }
+
+    function renderLog(){
+      var list = $('#logList');
+      list.innerHTML = '';
+
+      var q = String($('#search').value || '').trim().toLowerCase();
+      var from = $('#fromDate').value ? new Date($('#fromDate').value + 'T00:00:00') : null;
+      var to = $('#toDate').value ? new Date($('#toDate').value + 'T23:59:59') : null;
+
+      var filtered = state.entries.filter(function(e){
+        var t = new Date(e.ts);
+        if(from && t < from) return false;
+        if(to && t > to) return false;
+        if(!q) return true;
+        var names = (e.analysis && e.analysis.detected_items) ? e.analysis.detected_items.map(function(x){ return x.name; }) : [];
+        var hay = [e.title, e.notes, e.mealType].concat(names).join(' ').toLowerCase();
+        return hay.indexOf(q) !== -1;
+      });
+
+      $('#entryCount').textContent = String(filtered.length);
+      $('#logEmpty').style.display = filtered.length ? 'none' : 'block';
+
+      filtered.forEach(function(e){
+        var div = document.createElement('div');
+        div.className = 'logitem';
+        var dt = new Date(e.ts);
+        var totals = (e.analysis && e.analysis.totals) ? e.analysis.totals : {calories:0, protein_g:0, carbs_g:0, fat_g:0};
+        var items = (e.analysis && e.analysis.detected_items) ? e.analysis.detected_items : [];
+        var itemNames = items.map(function(x){ return x && x.name ? String(x.name) : ''; }).filter(Boolean);
+        var itemPreview = itemNames.slice(0, 3).join(', ');
+        var itemSuffix = itemNames.length > 3 ? (' +' + (itemNames.length - 3) + ' more') : '';
+
+        div.innerHTML = '' +
+          '<div class="top">' +
+          '  <div>' +
+          '    <div class="title">' + escapeHtml(e.title || 'Meal') + ' <span class="badge">' + escapeHtml(e.mealType || '') + '</span></div>' +
+          '    <div class="meta">Time: ' + escapeHtml(dt.toLocaleString()) + ' | Energy: ' + escapeHtml(formatKcal(totals.calories)) + '</div>' +
+          '    <div class="meta">Macros: P ' + round1(totals.protein_g) + 'g | C ' + round1(totals.carbs_g) + 'g | F ' + round1(totals.fat_g) + 'g</div>' +
+          (itemPreview ? ('<div class="meta">Items: ' + escapeHtml(itemPreview + itemSuffix) + '</div>') : '') +
+          (e.notes ? ('<div class="meta">Notes: ' + escapeHtml(e.notes) + '</div>') : '') +
+          '  </div>' +
+          '  <div class="actions">' +
+          '    <button class="btn" data-act="open">Open</button>' +
+          '    <button class="btn" data-act="dup">Duplicate</button>' +
+          '    <button class="btn danger" data-act="del">Delete</button>' +
+          '  </div>' +
+          '</div>';
+
+        div.addEventListener('click', function(ev){
+          var btn = ev.target.closest ? ev.target.closest('button') : null;
+          if(!btn) return;
+          var act = btn.getAttribute('data-act');
+          if(act === 'del'){
+            if(!confirm('Delete this entry?')) return;
+            state.entries = state.entries.filter(function(x){ return x.id !== e.id; });
+            saveLS(LS_ENTRIES, state.entries);
+            renderLog();
+            renderTrend();
+            renderStats();
+            toast('Deleted');
+          }
+          if(act === 'dup'){
+            var copy = structuredCloneSafe(e);
+            copy.id = uuid();
+            copy.ts = nowISO();
+            copy.title = (copy.title || 'Meal') + ' (copy)';
+            state.entries.unshift(copy);
+            saveLS(LS_ENTRIES, state.entries);
+            renderLog();
+            renderTrend();
+            renderStats();
+            toast('Duplicated');
+          }
+          if(act === 'open'){
+            openEntry(e.id);
+          }
+        });
+
+        list.appendChild(div);
+      });
+    }
+
+    function structuredCloneSafe(obj){
+      try{
+        if(typeof structuredClone === 'function') return structuredClone(obj);
+      } catch(e){}
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function openEntry(id){
+      var e = null;
+      state.entries.some(function(x){ if(x.id === id){ e = x; return true; } return false; });
+      if(!e) return;
+
+      selectTab('capture');
+      clearCapture();
+
+      state.current.analysis = structuredCloneSafe(e.analysis);
+      state.current.modelUsed = e.model || '';
+      state.current.usage = e.usage || null;
+
+      $('#portionNotes').value = e.notes || '';
+      $('#mealType').value = e.mealType || 'lunch';
+
+      if(e.imgThumb){
+        showPreview(e.imgThumb);
+        $('#imgInfoText').textContent = ' (thumbnail from log)';
+        $('#imgInfo').style.display = 'inline-flex';
+      }
+
+      setAnalysis(state.current.analysis);
+
+      $('#analysisMeta').style.display = 'block';
+      $('#analysisMeta').innerHTML = 'Loaded from log · Model: <span class="mono">' + escapeHtml(e.model || '') + '</span>';
+
+      $('#btnSave').disabled = false;
+      $('#btnAddRow').disabled = false;
+      $('#btnCopyJson').disabled = false;
+      $('#btnShowRaw').disabled = true;
+
+      toast('Loaded entry', 'Edit breakdown and Save to create a new entry.');
+    }
+
+    function addManual(){
+      selectTab('capture');
+      clearCapture();
+      state.current.analysis = {
+        meal_name: '',
+        detected_items: [
+          { name:'', portion:'', grams:0, calories:0, protein_g:0, carbs_g:0, fat_g:0, confidence:0.6, notes:'manual' }
+        ],
+        totals: { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
+        assumptions: ['Manual entry: adjust values.'],
+        warnings: [],
+        overall_confidence: 0.7
+      };
+      setAnalysis(state.current.analysis);
+      $('#analysisMeta').style.display = 'block';
+      $('#analysisMeta').textContent = 'Manual entry';
+      $('#btnSave').disabled = false;
+      $('#btnAddRow').disabled = false;
+      $('#btnCopyJson').disabled = false;
+      $('#btnShowRaw').disabled = true;
+      toast('Manual entry ready');
+    }
+
+    function exportData(){
+      var payload = {
+        version: 1,
+        exported_at: nowISO(),
+        entries: state.entries
+      };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'caloriecam-export-' + toLocalDateInput(new Date()) + '.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Exported');
+    }
+
+    function importData(){
+      var inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = 'application/json';
+      inp.onchange = function(){
+        var f = (inp.files && inp.files[0]) ? inp.files[0] : null;
+        if(!f) return;
+        f.text().then(function(txt){
+          var j = JSON.parse(txt);
+          var entries = Array.isArray(j.entries) ? j.entries : (Array.isArray(j) ? j : []);
+          if(!Array.isArray(entries)) throw new Error('Invalid file');
+
+          var map = {};
+          state.entries.forEach(function(e){ if(e && e.id) map[e.id] = e; });
+          entries.forEach(function(e){ if(e && e.id && !map[e.id]) map[e.id] = e; });
+
+          var merged = Object.keys(map).map(function(k){ return map[k]; });
+          merged.sort(function(a,b){ return new Date(b.ts) - new Date(a.ts); });
+          state.entries = merged;
+          saveLS(LS_ENTRIES, state.entries);
+          renderLog();
+          renderTrend();
+          renderStats();
+          toast('Imported', entries.length + ' entries processed');
+        }).catch(function(err){
+          toast('Import failed', String((err && err.message) ? err.message : err));
+        });
+      };
+      inp.click();
+    }
+
+    function wipeAll(){
+      if(!confirm('Wipe ALL entries from this device?')) return;
+      state.entries = [];
+      saveLS(LS_ENTRIES, state.entries);
+      renderLog();
+      renderTrend();
+      renderStats();
+      toast('Wiped');
+    }
+
+    // ---- Charts
+    function groupByDay(entries, days){
+      var out = {};
+      var today = new Date();
+      today.setHours(0,0,0,0);
+      var start = new Date(today); start.setDate(start.getDate() - (days-1));
+
+      for(var i=0;i<days;i++){
+        var d = new Date(start); d.setDate(start.getDate() + i);
+        var key = toLocalDateInput(d);
+        out[key] = {date:key, calories:0, protein_g:0, carbs_g:0, fat_g:0, n:0};
+      }
+
+      (entries || []).forEach(function(e){
+        var k = toLocalDateInput(e.ts);
+        if(!out[k]) return;
+        var t = (e.analysis && e.analysis.totals) ? e.analysis.totals : {};
+        out[k].calories += toNum(t.calories);
+        out[k].protein_g += toNum(t.protein_g);
+        out[k].carbs_g += toNum(t.carbs_g);
+        out[k].fat_g += toNum(t.fat_g);
+        out[k].n += 1;
+      });
+
+      var arr = Object.keys(out).sort().map(function(k){
+        out[k].calories = Math.round(out[k].calories);
+        out[k].protein_g = round1(out[k].protein_g);
+        out[k].carbs_g = round1(out[k].carbs_g);
+        out[k].fat_g = round1(out[k].fat_g);
+        return out[k];
+      });
+
+      return arr;
+    }
+
+    function drawBarChart(canvas, series, metric, label){
+      metric = metric || 'calories';
+      label = label || 'kcal';
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      ctx.fillRect(0,0,w,h);
+
+      var pad = {l:44, r:14, t:12, b:32};
+      var innerW = w - pad.l - pad.r;
+      var innerH = h - pad.t - pad.b;
+
+      var maxV = 1;
+      series.forEach(function(d){ maxV = Math.max(maxV, toNum(d[metric])); });
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.l, pad.t);
+      ctx.lineTo(pad.l, pad.t+innerH);
+      ctx.lineTo(pad.l+innerW, pad.t+innerH);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      var steps = 4;
+      for(var i=0;i<=steps;i++){
+        var y = pad.t + innerH - (i/steps)*innerH;
+        var v = Math.round((i/steps)*maxV);
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l+innerW, y);
+        ctx.stroke();
+        ctx.fillText(String(v), 8, y+4);
+      }
+
+      var n = series.length;
+      var gap = 6;
+      var barW = Math.max(4, Math.floor((innerW - gap*(n-1)) / n));
+
+      series.forEach(function(d, i){
+        var v = toNum(d[metric]);
+        var bh = (v / maxV) * innerH;
+        var x = pad.l + i*(barW+gap);
+        var y = pad.t + innerH - bh;
+        var g = ctx.createLinearGradient(0, y, 0, pad.t+innerH);
+        g.addColorStop(0, 'rgba(124,92,255,0.85)');
+        g.addColorStop(1, 'rgba(45,212,191,0.55)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, barW, bh);
+
+        if(n <= 16 || i % 3 === 0 || i === n-1){
+          ctx.save();
+          ctx.translate(x + barW/2, pad.t+innerH+14);
+          ctx.rotate(-0.6);
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.font = '11px ui-sans-serif, system-ui';
+          var lab = String(d.date).slice(5);
+          ctx.fillText(lab, -18, 0);
+          ctx.restore();
+        }
+      });
+
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = '13px ui-sans-serif, system-ui';
+      ctx.fillText(label + ' by day', pad.l, 18);
+    }
+
+    function drawDonut(canvas, protein, carbs, fat){
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+
+      var total = Math.max(0.0001, protein + carbs + fat);
+      var cx = w/2, cy = h/2;
+      var r = Math.min(w,h) * 0.28;
+      var ring = r * 0.55;
+
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      ctx.fillRect(0,0,w,h);
+
+      var parts = [
+        {name:'Protein', v: protein/total, color:'rgba(45,212,191,0.85)'},
+        {name:'Carbs', v: carbs/total, color:'rgba(124,92,255,0.85)'},
+        {name:'Fat', v: fat/total, color:'rgba(245,158,11,0.85)'}
+      ];
+
+      var ang = -Math.PI/2;
+      parts.forEach(function(p){
+        var a2 = ang + p.v * Math.PI*2;
+        ctx.beginPath();
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = ring;
+        ctx.arc(cx, cy, r, ang, a2);
+        ctx.stroke();
+        ang = a2;
+      });
+
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(18,20,27,0.95)';
+      ctx.arc(cx, cy, r - ring/2 - 2, 0, Math.PI*2);
+      ctx.fill();
+
+      var innerR = r - ring/2 - 2;
+      var lines = [
+        'P ' + round1(protein) + 'g',
+        'C ' + round1(carbs) + 'g',
+        'F ' + round1(fat) + 'g'
+      ];
+      var fontSize = 12;
+      var maxWidth = innerR * 1.8;
+      while(fontSize > 9){
+        ctx.font = '600 ' + fontSize + 'px ui-sans-serif, system-ui';
+        var widest = 0;
+        lines.forEach(function(t){ widest = Math.max(widest, ctx.measureText(t).width); });
+        if(widest <= maxWidth) break;
+        fontSize -= 1;
+      }
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = '700 12px ui-sans-serif, system-ui';
+      ctx.fillText('Macros', cx, cy - (fontSize + 8));
+
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '600 ' + fontSize + 'px ui-sans-serif, system-ui';
+      var lineH = fontSize + 2;
+      var startY = cy - (lineH);
+      lines.forEach(function(t, i){
+        ctx.fillText(t, cx, startY + (i * lineH));
+      });
+
+      ctx.textAlign = 'left';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      var y = 22;
+      parts.forEach(function(p){
+        ctx.fillStyle = p.color;
+        ctx.fillRect(16, y-10, 12, 12);
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(p.name + ': ' + (p.v*100).toFixed(0) + '%', 36, y);
+        y += 20;
+      });
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = '13px ui-sans-serif, system-ui';
+      ctx.fillText('Macro split (grams)', 16, h-14);
+    }
+
+    function renderTrend(){
+      var series = groupByDay(state.entries, 14);
+      drawBarChart($('#trend'), series, 'calories', 'kcal');
+
+      var todayKey = toLocalDateInput(new Date());
+      var today = {calories:0, protein_g:0, carbs_g:0, fat_g:0, n:0};
+      series.forEach(function(x){ if(x.date === todayKey) today = x; });
+
+      var last7 = series.slice(-7);
+      var sum7 = 0;
+      last7.forEach(function(x){ sum7 += x.calories; });
+      var avg7 = sum7 / Math.max(1, last7.length);
+
+      var max14 = 0;
+      series.forEach(function(x){ max14 = Math.max(max14, x.calories); });
+
+      var n14 = 0;
+      series.forEach(function(x){ n14 += x.n; });
+
+      $('#kpiToday').innerHTML =
+        '<div class="kpi-rows">' +
+          '<div class="kpi-line"><span class="kpi-label">Energy</span><span class="kpi-value">' + escapeHtml(formatKcal(today.calories)) + '</span></div>' +
+          '<div class="kpi-line"><span class="kpi-label">Macros</span>' +
+            '<span>🥩 ' + round1(today.protein_g) + 'g</span>' +
+            '<span>🍞 ' + round1(today.carbs_g) + 'g</span>' +
+            '<span>🧈 ' + round1(today.fat_g) + 'g</span>' +
+          '</div>' +
+        '</div>';
+      $('#kpiAvg7').textContent = formatKcal(avg7);
+      $('#kpiMax14').textContent = formatKcal(max14);
+      $('#kpiN14').textContent = String(n14);
+
+      renderDailyMacroTable(series);
+    }
+
+    function renderStats(){
+      var days = clamp(Number($('#statsWindow').value || 14), 1, 365);
+      var metric = $('#statsMetric').value || 'calories';
+      var series = groupByDay(state.entries, days);
+
+      var label = (metric === 'calories') ? 'kcal' : metric.replace('_g',' (g)');
+      drawBarChart($('#byDay'), series, metric, label);
+
+      var p = 0, c = 0, f = 0;
+      series.forEach(function(x){ p += toNum(x.protein_g); c += toNum(x.carbs_g); f += toNum(x.fat_g); });
+      drawDonut($('#macroDonut'), p, c, f);
+
+      var map = {};
+      var cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - (days-1));
+      cutoff.setHours(0,0,0,0);
+
+      (state.entries || []).forEach(function(e){
+        var dt = new Date(e.ts);
+        if(dt < cutoff) return;
+        (e.analysis && e.analysis.detected_items ? e.analysis.detected_items : []).forEach(function(it){
+          var k = String(it.name || '').toLowerCase().trim();
+          if(!k) return;
+          if(!map[k]) map[k] = {name: it.name, calories:0, n:0};
+          map[k].calories += toNum(it.calories);
+          map[k].n += 1;
+        });
+      });
+
+      var top = Object.keys(map).map(function(k){ return map[k]; }).sort(function(a,b){ return b.calories - a.calories; }).slice(0,10);
+      if(!top.length){
+        $('#topItems').textContent = '—';
+      } else {
+        $('#topItems').innerHTML = top.map(function(x,i){
+          return '<div>' + (i+1) + '. <b>' + escapeHtml(x.name) + '</b> — ' + escapeHtml(formatKcal(x.calories)) + ' <span class="muted">(' + x.n + '×)</span></div>';
+        }).join('');
+      }
+    }
+
+    // ---- Settings actions
+    function testConnection(){
+      saveSettings();
+      var hasKey = Boolean(state.settings.apiKey);
+      var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
+      if(!hasKey && !hasProxy){ toast('Set an API key or proxy URL first'); return; }
+
+      $('#btnTest').disabled = true;
+      $('#btnTest').textContent = 'Testing…';
+
+      // Some providers (e.g., Azure) require the word "json" to appear in the messages
+      // when using response_format: { type: "json_object" }.
+      var body = {
+        model: state.settings.model,
+        messages: [{ role:'user', content:'Return ONLY valid JSON. Output exactly this JSON object: {"ok": true}.' }],
+        response_format: { type:'json_object' },
+        plugins: [{ id: 'response-healing' }],
+        temperature: 0
+      };
+
+      openRouterChat(body).then(function(res){
+        var content = res && res.choices && res.choices[0] && res.choices[0].message ? res.choices[0].message.content : null;
+        var obj = (typeof content === 'string') ? safeParseJson(content) : content;
+        if(obj && obj.ok === true){
+          toast('Connection OK');
+        } else {
+          var preview = (typeof content === 'string') ? content.slice(0,120) : JSON.stringify(content).slice(0,120);
+          toast('Connected, but unexpected reply', preview);
+        }
+      }).catch(function(err){
+        toast('Test failed', String((err && err.message) ? err.message : err));
+      }).finally(function(){
+        $('#btnTest').disabled = false;
+        $('#btnTest').textContent = 'Test connection';
+      });
+    }
+
+    function loadModels(){
+      saveSettings();
+
+      $('#btnLoadModels').disabled = true;
+      $('#btnLoadModels').textContent = 'Loading…';
+
+      fetch('https://openrouter.ai/api/v1/models', {
+        headers: state.settings.apiKey ? { 'Authorization': 'Bearer ' + state.settings.apiKey } : {}
+      }).then(function(r){ return r.json(); }).then(function(j){
+        var models = Array.isArray(j.data) ? j.data : [];
+        if(!models.length) throw new Error('No models returned');
+
+        var vision = models.filter(function(m){
+          var mod = (m && m.architecture && m.architecture.modality) ? String(m.architecture.modality).toLowerCase() : '';
+          return mod.indexOf('image') !== -1;
+        }).map(function(m){ return m.id; });
+
+        var fallback = models.slice(0, 50).map(function(m){ return m.id; });
+        var list = (vision.length ? vision : fallback).slice(0, 60);
+
+        var sel = $('#model');
+        if(sel){
+          sel.innerHTML = '';
+          list.forEach(function(id){
+            var opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = id;
+            sel.appendChild(opt);
+          });
+          ensureModelOption(state.settings.model);
+          sel.value = state.settings.model || sel.options[0].value;
+          if(sel.value !== state.settings.model){
+            state.settings.model = sel.value;
+            saveLS(LS_SETTINGS, state.settings);
+          }
+          renderSettings();
+          syncApiStatus();
+          toast('Models loaded');
+        } else {
+          toast('Models loaded', 'Model selector not found.');
+        }
+      }).catch(function(err){
+        toast('Could not load models', String((err && err.message) ? err.message : err));
+      }).finally(function(){
+        $('#btnLoadModels').disabled = false;
+        $('#btnLoadModels').textContent = 'Load model list';
+      });
+    }
+
+    // ---- Self tests (acts like lightweight test cases)
+    function assert(cond, msg){
+      if(!cond) throw new Error('Test failed: ' + msg);
+    }
+
+    function runSelfTests(){
+      try{
+        // Test 1: formatting
+        assert(formatKcal(100).indexOf('kcal') !== -1, 'formatKcal contains kcal');
+
+        // Test 2: sumFromItems
+        var s = sumFromItems([{calories:100, protein_g:10, carbs_g:20, fat_g:5},{calories:50, protein_g:2, carbs_g:3, fat_g:1}]);
+        assert(s.calories === 150, 'sumFromItems calories');
+        assert(s.protein_g === 12, 'sumFromItems protein');
+
+        // Test 3: safeParseJson
+        assert(safeParseJson('{"a":1}').a === 1, 'safeParseJson simple');
+        assert(safeParseJson('junk {"a":1} junk').a === 1, 'safeParseJson extraction');
+
+        // Test 4: settings roundtrip (if storage works)
+        if(storageWorks()){
+          var key = '__cc_selftest_settings__';
+          saveLS(key, {x:1});
+          var v = loadLS(key, {});
+          assert(v && v.x === 1, 'settings save/load');
+          try{ localStorage.removeItem(key); } catch(e){}
+        }
+      } catch(err){
+        try{ console.error(err); } catch(e2){}
+        toast('App self-test failed', String((err && err.message) ? err.message : err));
+      }
+    }
+
+    // ---- Boot
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
