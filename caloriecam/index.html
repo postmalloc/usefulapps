@@ -1822,17 +1822,21 @@
     }
 
     function onPhoto(e){
-      var files = (e.target && e.target.files) ? Array.prototype.slice.call(e.target.files) : [];
+      var newFiles = (e.target && e.target.files) ? Array.prototype.slice.call(e.target.files) : [];
       var nameEl = $('#photoName');
-      if(nameEl){
-        if(!files.length) nameEl.textContent = 'No photos selected';
-        else nameEl.textContent = files.length + ' photo' + (files.length > 1 ? 's' : '') + ' selected';
+      if(nameEl && !newFiles.length){
+        var existingCount = (state.capture.images || []).length;
+        nameEl.textContent = existingCount
+          ? existingCount + ' photo' + (existingCount > 1 ? 's' : '') + ' selected'
+          : 'No photos selected';
       }
-      if(!files.length) return;
-      state.capture.files = files;
-      state.capture.activeIndex = 0;
+      if(!newFiles.length) return;
 
-      Promise.all(files.map(function(f){
+      var existingImages = Array.isArray(state.capture.images) ? state.capture.images.slice() : [];
+      var existingFiles = Array.isArray(state.capture.files) ? state.capture.files.slice() : [];
+      var startIdx = existingImages.length;
+
+      Promise.all(newFiles.map(function(f){
         return preprocessImage(f, state.settings.maxDim, state.settings.jpegQ).then(function(r){
           return {
             name: f.name || '',
@@ -1844,10 +1848,16 @@
           };
         });
       })).then(function(imgs){
-        state.capture.images = imgs;
-        setPreviewImages(imgs, 0);
+        state.capture.images = existingImages.concat(imgs);
+        state.capture.files = existingFiles.concat(newFiles);
+        state.capture.activeIndex = startIdx;
+        setPreviewImages(state.capture.images, startIdx);
         updateImgInfo();
-        toast('Photos ready', 'You can now estimate calories.');
+        if(nameEl){
+          var total = state.capture.images.length;
+          nameEl.textContent = total + ' photo' + (total > 1 ? 's' : '') + ' selected';
+        }
+        toast(startIdx ? 'Added photos' : 'Photos ready', 'You can now estimate calories.');
       }).catch(function(err){
         try{ console.error(err); } catch(e2){}
         toast('Could not load images', String((err && err.message) ? err.message : err));
