@@ -1509,6 +1509,18 @@
       return merged;
     }
 
+    function sanitizeEntryImages(entries){
+      var changed = false;
+      (entries || []).forEach(function(e){
+        if(!e || !Array.isArray(e.imgThumbs)) return;
+        if(e.imgThumbs.length > 1){
+          e.imgThumbs = e.imgThumbs.slice(0, 1);
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
     function loadCloudState(){
       var fb = window.ccFirebase;
       var ref = cloudDocRef();
@@ -1523,6 +1535,14 @@
           return;
         }
         var data = snap.data() || {};
+        var sanitized = false;
+
+        if(Array.isArray(data.entries)){
+          sanitized = sanitizeEntryImages(data.entries);
+          if(sanitized){
+            data.entries = data.entries.map(function(e){ return e; });
+          }
+        }
         var remoteStamp = Number(data.clientUpdatedAt || 0);
 
         if(syncMeta && syncMeta.lastLocal === 0){
@@ -1536,6 +1556,10 @@
 
         if(syncMeta && remoteStamp > syncMeta.lastLocal){
           applyCloudState(data);
+          if(sanitized){
+            markLocalChanged();
+            syncToCloud('sanitize-remote');
+          }
           syncMeta.lastLocal = remoteStamp;
           syncMeta.lastCloud = remoteStamp;
           saveLS(LS_SYNC, syncMeta);
@@ -1546,6 +1570,12 @@
         if(syncMeta && remoteStamp < syncMeta.lastLocal){
           setSyncStatus('Cloud behind. Uploading local data...', 'sync');
           syncToCloud('local-newer');
+          return;
+        }
+
+        if(sanitized){
+          markLocalChanged();
+          syncToCloud('sanitize-remote');
           return;
         }
 
@@ -1582,6 +1612,11 @@
       var fb = window.ccFirebase;
       var ref = cloudDocRef();
       if(!fb || !ref) return;
+
+      if(sanitizeEntryImages(state.entries)){
+        saveLS(LS_ENTRIES, state.entries);
+        markLocalChanged();
+      }
 
       var payload = {
         settings: settingsForCloud(),
@@ -1695,6 +1730,10 @@
       initTheme();
       requestPersistentStorage();
       initSyncMeta();
+      if(sanitizeEntryImages(state.entries)){
+        saveLS(LS_ENTRIES, state.entries);
+        markLocalChanged();
+      }
       updateOnlineStatus();
       updateHeaderOffset();
       window.addEventListener('resize', updateHeaderOffset);
@@ -2815,13 +2854,14 @@
       var analysis = state.current.analysis;
       if(!analysis){ toast('No analysis to save'); return; }
 
+      var capturedImages = (state.capture.images || []).slice(0, 1);
       var entry = {
         id: uuid(),
         ts: nowISO(),
         mealType: getMealTypeInfo(new Date()).value,
         title: analysis.meal_name || guessTitleFromItems(analysis.detected_items),
         notes: String($('#portionNotes').value || '').trim(),
-        imgThumbs: (state.capture.images || []).map(function(it){ return it.thumbUrl || it.dataUrl; }),
+        imgThumbs: capturedImages.map(function(it){ return it.thumbUrl || it.dataUrl; }),
         analysis: {
           meal_name: analysis.meal_name || '',
           detected_items: analysis.detected_items || [],
