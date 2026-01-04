@@ -592,6 +592,7 @@
     .macro-pill.protein{ background: rgba(14,165,163,.12); border-color: rgba(14,165,163,.35); color: rgba(14,165,163,.95); }
     .macro-pill.carbs{ background: rgba(37,99,235,.12); border-color: rgba(37,99,235,.35); color: rgba(37,99,235,.95); }
     .macro-pill.fat{ background: rgba(180,83,9,.14); border-color: rgba(180,83,9,.35); color: rgba(180,83,9,.95); }
+    .macro-pill.fiber{ background: rgba(109,40,217,.10); border-color: rgba(109,40,217,.35); color: rgba(109,40,217,.95); }
     .item-preview{
       color:var(--text);
       background: var(--surface-3);
@@ -606,6 +607,15 @@
       padding:4px 8px;
       border-radius:10px;
     }
+    .analysis-box{
+      border:1px dashed var(--border);
+      background: var(--surface-2);
+      padding:12px;
+      border-radius:12px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .analysis-box b{ color:var(--text); }
 
     details summary{ cursor:pointer; color:var(--text); }
 
@@ -775,6 +785,7 @@
                 <div class="box"><div class="t">🥩 Protein</div><div class="v" id="kpiP">—</div></div>
                 <div class="box"><div class="t">🍞 Carbs</div><div class="v" id="kpiC">—</div></div>
                 <div class="box"><div class="t">🧈 Fat</div><div class="v" id="kpiF">—</div></div>
+                <div class="box"><div class="t">🌱 Fiber</div><div class="v" id="kpiFiber">—</div></div>
               </div>
 
               <div class="row" id="mealTitleRow" style="display:none; margin-bottom:6px">
@@ -793,12 +804,13 @@
                       <th style="min-width:90px">P</th>
                       <th style="min-width:90px">C</th>
                       <th style="min-width:90px">F</th>
+                      <th style="min-width:110px">Fiber</th>
                       <th style="min-width:120px">Confidence</th>
                       <th style="min-width:120px">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="itemsBody">
-                    <tr><td colspan="9" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>
+                    <tr><td colspan="10" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -810,6 +822,7 @@
               </div>
 
               <div id="assumptionsBox" style="margin-top:12px; display:none"></div>
+              <div id="mealReviewBox" class="analysis-box" style="margin-top:12px; display:none"></div>
 
             </div>
           </div>
@@ -849,54 +862,17 @@
               </div>
               <div class="row" style="margin-top:10px">
                 <button class="btn" id="btnAddManual">Add manual entry</button>
+                <button class="btn" id="btnAnalyzeRange">Analyze</button>
                 <span class="pill"><b>Total entries</b> <span id="entryCount">0</span></span>
               </div>
+              <div class="statusline off" id="analyzeStatus" style="display:none">
+                <span class="status-icon" aria-hidden="true">○</span>
+                <span id="analyzeStatusText">Ready</span>
+              </div>
+              <div id="analyzeOutput" class="analysis-box" style="margin-top:10px; display:none"></div>
               <div class="hr"></div>
               <div class="loglist" id="logList"></div>
               <div id="logEmpty" class="hint" style="display:none">No entries yet. Use the Capture tab to add one.</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="hd">
-              <div>
-                <h2>Daily totals</h2>
-                <div class="sub">Last 14 days calories trend (local).</div>
-              </div>
-              <div class="row" style="justify-content:flex-end">
-                <span class="chip"><span class="dot ok"></span>Food log</span>
-              </div>
-            </div>
-            <div class="bd">
-              <div class="canvasBox">
-                <canvas id="trend" width="720" height="360" style="width:100%; height:auto"></canvas>
-              </div>
-              <div class="hr"></div>
-              <div class="kpi">
-                <div class="box"><div class="t">Today</div><div class="v" id="kpiToday">—</div></div>
-                <div class="box"><div class="t">7-day avg</div><div class="v" id="kpiAvg7">—</div></div>
-                <div class="box"><div class="t">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
-                <div class="box"><div class="t">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
-              </div>
-              <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid var(--line)">
-                <table class="table" id="dailyMacroTable">
-                  <thead>
-                    <tr>
-                      <th style="min-width:120px">Date</th>
-                      <th style="min-width:140px">Calories</th>
-                      <th style="min-width:110px">Protein</th>
-                      <th style="min-width:110px">Carbs</th>
-                      <th style="min-width:110px">Fat</th>
-                      <th style="min-width:110px">Vs goal</th>
-                    </tr>
-                  </thead>
-                  <tbody id="dailyMacroBody">
-                    <tr><td colspan="6" style="color:var(--muted); padding:14px">No data yet.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="hint" id="goalsMiniHint" style="margin-top:8px"></div>
-              <div class="hint" style="margin-top:8px">Tip: calorie estimates are uncertain. Use the editable breakdown to adjust portions.</div>
             </div>
           </div>
         </div>
@@ -931,6 +907,7 @@
                     <option value="protein_g">Protein (g)</option>
                     <option value="carbs_g">Carbs (g)</option>
                     <option value="fat_g">Fat (g)</option>
+                    <option value="fiber_g">Fiber (g)</option>
                   </select>
                 </div>
               </div>
@@ -947,6 +924,50 @@
                 <div style="font-weight:700; margin-bottom:8px">Top items (by calories)</div>
                 <div id="topItems" class="hint">—</div>
               </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">
+              <div>
+                <h2>Daily totals</h2>
+                <div class="sub">Last 14 days calories trend (local).</div>
+              </div>
+              <div class="row" style="justify-content:flex-end">
+                <span class="chip"><span class="dot ok"></span>Food log</span>
+              </div>
+            </div>
+            <div class="bd">
+              <div class="canvasBox">
+                <canvas id="trend" width="720" height="360" style="width:100%; height:auto"></canvas>
+              </div>
+              <div class="hr"></div>
+              <div class="kpi">
+                <div class="box"><div class="t">Today</div><div class="v" id="kpiToday">—</div></div>
+                <div class="box"><div class="t">7-day avg</div><div class="v" id="kpiAvg7">—</div></div>
+                <div class="box"><div class="t">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
+                <div class="box"><div class="t">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
+              </div>
+              <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid var(--line)">
+                <table class="table" id="dailyMacroTable">
+                  <thead>
+                    <tr>
+                      <th style="min-width:120px">Date</th>
+                      <th style="min-width:140px">Calories</th>
+                      <th style="min-width:110px">Protein</th>
+                      <th style="min-width:110px">Carbs</th>
+                      <th style="min-width:110px">Fat</th>
+                      <th style="min-width:120px">Fiber</th>
+                      <th style="min-width:110px">Vs goal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dailyMacroBody">
+                    <tr><td colspan="7" style="color:var(--muted); padding:14px">No data yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="hint" id="goalsMiniHint" style="margin-top:8px"></div>
+              <div class="hint" style="margin-top:8px">Tip: calorie estimates are uncertain. Use the editable breakdown to adjust portions.</div>
             </div>
           </div>
 
@@ -1706,6 +1727,7 @@
       $('#btnImport').addEventListener('click', importData);
       $('#btnWipe').addEventListener('click', wipeAll);
       $('#btnAddManual').addEventListener('click', addManual);
+      $('#btnAnalyzeRange').addEventListener('click', analyzeRange);
 
       // Stats
       $('#statsWindow').addEventListener('change', renderStats);
@@ -1735,8 +1757,7 @@
       // Date filters
       var today = new Date();
       $('#toDate').value = toLocalDateInput(today);
-      var from = new Date(today); from.setDate(from.getDate() - 14);
-      $('#fromDate').value = toLocalDateInput(from);
+      $('#fromDate').value = toLocalDateInput(today);
 
       renderLog();
       renderTrend();
@@ -1926,7 +1947,8 @@
       info.style.display = 'inline-flex';
     }
 
-    function clearCapture(){
+    function clearCapture(opts){
+      var silent = opts && opts.silent;
       state.capture = { files:[], images:[], activeIndex:0 };
       state.current = { analysis:null, rawText:'', modelUsed:'', usage:null };
       $('#photo').value = '';
@@ -1942,7 +1964,7 @@
       $('#imgInfo').style.display = 'none';
       $('#usageInfo').style.display = 'none';
       setAnalysis(null);
-      toast('Cleared');
+      if(!silent) toast('Cleared');
     }
 
     function resetUI(){
@@ -2127,6 +2149,7 @@
                 protein_g: { type: 'number' },
                 carbs_g: { type: 'number' },
                 fat_g: { type: 'number' },
+                fiber_g: { type: 'number' },
                 confidence: { type: 'number' },
                 notes: { type: 'string' }
               },
@@ -2140,10 +2163,12 @@
               calories: { type: 'number' },
               protein_g: { type: 'number' },
               carbs_g: { type: 'number' },
-              fat_g: { type: 'number' }
+              fat_g: { type: 'number' },
+              fiber_g: { type: 'number' }
             },
             required: ['calories','protein_g','carbs_g','fat_g']
           },
+          meal_review: { type: 'string' },
           assumptions: { type: 'array', items: { type: 'string' } },
           overall_confidence: { type: 'number' }
         },
@@ -2154,8 +2179,8 @@
     function buildPrompt(mealType, notes){
       var base =
         'Analyze the provided food photo(s) and estimate nutrition.\n\n' +
-        'Return a breakdown of components (ingredients/items), with estimated grams, kcal, protein_g, carbs_g, fat_g per item.\n' +
-        'Also include totals and confidence values (0..1).\n\n' +
+        'Return a breakdown of components (ingredients/items), with estimated grams, kcal, protein_g, carbs_g, fat_g, fiber_g per item.\n' +
+        'Also include totals, confidence values (0..1), and a concise, objective meal_review (1–2 sentences) about healthfulness, balance, and notable pros/cons.\n\n' +
         'Rules:\n' +
         '- Prefer realistic portions based on typical serving sizes.\n' +
         '- If something is ambiguous, choose a plausible default and explain it in assumptions.\n' +
@@ -2262,7 +2287,7 @@
       if(!tb) return;
       var g = computeGoals();
       if(!series || !series.length){
-        tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted); padding:14px">No data yet.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="7" style="color:var(--muted); padding:14px">No data yet.</td></tr>';
         return;
       }
       tb.innerHTML = series.map(function(d){
@@ -2274,6 +2299,7 @@
           '<td>' + round1(d.protein_g) + ' g</td>' +
           '<td>' + round1(d.carbs_g) + ' g</td>' +
           '<td>' + round1(d.fat_g) + ' g</td>' +
+          '<td>' + round1(d.fiber_g) + ' g</td>' +
           '<td>' + escapeHtml(vs) + '</td>' +
         '</tr>';
       }).join('');
@@ -2473,18 +2499,20 @@
     function round1(n){ return Math.round(n*10)/10; }
 
     function sumFromItems(items){
-      var sum = { calories:0, protein_g:0, carbs_g:0, fat_g:0 };
+      var sum = { calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0 };
       (items || []).forEach(function(it){
         sum.calories += toNum(it.calories);
         sum.protein_g += toNum(it.protein_g);
         sum.carbs_g += toNum(it.carbs_g);
         sum.fat_g += toNum(it.fat_g);
+        sum.fiber_g += toNum(it.fiber_g);
       });
       return {
         calories: Math.round(sum.calories),
         protein_g: round1(sum.protein_g),
         carbs_g: round1(sum.carbs_g),
-        fat_g: round1(sum.fat_g)
+        fat_g: round1(sum.fat_g),
+        fiber_g: round1(sum.fiber_g)
       };
     }
 
@@ -2508,8 +2536,9 @@
       var analysis = {
         meal_name: String(obj.meal_name || ''),
         detected_items: Array.isArray(obj.detected_items) ? obj.detected_items : (Array.isArray(obj.items) ? obj.items : []),
-        totals: obj.totals || { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
+        totals: obj.totals || { calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0 },
         assumptions: Array.isArray(obj.assumptions) ? obj.assumptions : [],
+        meal_review: String(obj.meal_review || obj.review || obj.summary || ''),
         overall_confidence: Number(obj.overall_confidence != null ? obj.overall_confidence : 0.5)
       };
 
@@ -2522,6 +2551,7 @@
           protein_g: toNum(it.protein_g),
           carbs_g: toNum(it.carbs_g),
           fat_g: toNum(it.fat_g),
+          fiber_g: toNum((it.fiber_g != null ? it.fiber_g : (it.fibre_g != null ? it.fibre_g : it.fiber))),
           confidence: clamp(toNum(it.confidence), 0, 1),
           notes: String(it.notes || '')
         };
@@ -2531,7 +2561,8 @@
         calories: toNum(analysis.totals.calories),
         protein_g: toNum(analysis.totals.protein_g),
         carbs_g: toNum(analysis.totals.carbs_g),
-        fat_g: toNum(analysis.totals.fat_g)
+        fat_g: toNum(analysis.totals.fat_g),
+        fiber_g: toNum((analysis.totals.fiber_g != null ? analysis.totals.fiber_g : (analysis.totals.fibre_g != null ? analysis.totals.fibre_g : analysis.totals.fiber)))
       };
 
       var s = sumFromItems(analysis.detected_items);
@@ -2547,12 +2578,17 @@
       body.innerHTML = '';
 
       if(!analysis){
-        body.innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" style="color:var(--muted); padding:14px">No analysis yet.</td></tr>';
         $('#kpiCal').textContent = '—';
         $('#kpiP').textContent = '—';
         $('#kpiC').textContent = '—';
         $('#kpiF').textContent = '—';
+        $('#kpiFiber').textContent = '—';
         $('#assumptionsBox').style.display = 'none';
+        if($('#mealReviewBox')){
+          $('#mealReviewBox').style.display = 'none';
+          $('#mealReviewBox').innerHTML = '';
+        }
         $('#analysisMeta').style.display = 'none';
         $('#mealTitleRow').style.display = 'none';
         return;
@@ -2569,13 +2605,14 @@
 
       var items = Array.isArray(analysis.detected_items) ? analysis.detected_items : [];
       if(items.length === 0){
-        body.innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No items detected. Try adding portion notes and re-running.</td></tr>';
+        body.innerHTML = '<tr><td colspan="10" style="color:var(--muted); padding:14px">No items detected. Try adding portion notes and re-running.</td></tr>';
       } else {
         items.forEach(function(it){ addItemRow(it); });
       }
 
       renderTotalsFromTable();
       renderAssumptions(analysis);
+      renderMealReview(analysis);
     }
 
     function numOrEmpty(n){
@@ -2585,7 +2622,7 @@
 
     function addItemRow(it){
       var body = $('#itemsBody');
-      if(body.querySelector('td[colspan="9"]')) body.innerHTML = '';
+      if(body.querySelector('td[colspan="9"]') || body.querySelector('td[colspan="10"]')) body.innerHTML = '';
 
       var tr = document.createElement('tr');
       tr.innerHTML = '' +
@@ -2598,6 +2635,7 @@
         '<td><input type="number" value="' + numOrEmpty(it.protein_g) + '" min="0" step="0.1" data-k="protein_g" /></td>' +
         '<td><input type="number" value="' + numOrEmpty(it.carbs_g) + '" min="0" step="0.1" data-k="carbs_g" /></td>' +
         '<td><input type="number" value="' + numOrEmpty(it.fat_g) + '" min="0" step="0.1" data-k="fat_g" /></td>' +
+        '<td><input type="number" value="' + numOrEmpty(it.fiber_g) + '" min="0" step="0.1" data-k="fiber_g" /></td>' +
         '<td><input type="number" value="' + clamp(toNum(it.confidence),0,1) + '" min="0" max="1" step="0.05" data-k="confidence" /></td>' +
         '<td>' +
         '  <button class="btn" data-act="dup">Duplicate</button>' +
@@ -2615,7 +2653,7 @@
         if(act === 'del'){
           tr.remove();
           if($('#itemsBody').children.length === 0){
-            $('#itemsBody').innerHTML = '<tr><td colspan="9" style="color:var(--muted); padding:14px">No items. Add one.</td></tr>';
+            $('#itemsBody').innerHTML = '<tr><td colspan="10" style="color:var(--muted); padding:14px">No items. Add one.</td></tr>';
           }
           renderTotalsFromTable();
         }
@@ -2642,6 +2680,7 @@
         protein_g: toNum(get('protein_g')),
         carbs_g: toNum(get('carbs_g')),
         fat_g: toNum(get('fat_g')),
+        fiber_g: toNum(get('fiber_g')),
         confidence: clamp(toNum(get('confidence')), 0, 1),
         notes: String(get('notes')).trim()
       };
@@ -2650,7 +2689,7 @@
     function tableItems(){
       var rows = $$('#itemsBody tr').filter(function(r){ return r.querySelector('input[data-k="name"]'); });
       return rows.map(rowToItem).filter(function(it){
-        return it.name || it.calories || it.grams || it.protein_g || it.carbs_g || it.fat_g;
+        return it.name || it.calories || it.grams || it.protein_g || it.carbs_g || it.fat_g || it.fiber_g;
       });
     }
 
@@ -2668,6 +2707,7 @@
       $('#kpiP').textContent = round1(totals.protein_g) + ' g';
       $('#kpiC').textContent = round1(totals.carbs_g) + ' g';
       $('#kpiF').textContent = round1(totals.fat_g) + ' g';
+      $('#kpiFiber').textContent = round1(totals.fiber_g) + ' g';
 
       if(state.current.analysis){
         state.current.analysis.detected_items = items;
@@ -2692,6 +2732,21 @@
       }
     }
 
+    function renderMealReview(analysis){
+      var box = $('#mealReviewBox');
+      if(!box) return;
+      var txt = String(analysis && analysis.meal_review ? analysis.meal_review : '').trim();
+      if(txt){
+        box.style.display = 'block';
+        box.innerHTML =
+          '<div style="font-weight:700; margin-bottom:6px">Meal review</div>' +
+          '<div>' + escapeHtml(txt) + '</div>';
+      } else {
+        box.style.display = 'none';
+        box.innerHTML = '';
+      }
+    }
+
     function copyJson(){
       if(!state.current.analysis){ toast('Nothing to copy'); return; }
       var payload = {
@@ -2699,6 +2754,7 @@
         detected_items: state.current.analysis.detected_items,
         totals: state.current.analysis.totals,
         assumptions: state.current.analysis.assumptions,
+        meal_review: state.current.analysis.meal_review,
         overall_confidence: state.current.analysis.overall_confidence,
         model: state.current.modelUsed,
         usage: state.current.usage
@@ -2755,8 +2811,9 @@
         analysis: {
           meal_name: analysis.meal_name || '',
           detected_items: analysis.detected_items || [],
-          totals: analysis.totals || {calories:0, protein_g:0, carbs_g:0, fat_g:0},
+          totals: analysis.totals || {calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0},
           assumptions: analysis.assumptions || [],
+          meal_review: analysis.meal_review || '',
           overall_confidence: (analysis.overall_confidence != null ? analysis.overall_confidence : 0.5)
         },
         model: state.current.modelUsed || state.settings.model,
@@ -2771,14 +2828,13 @@
       renderLog();
       renderTrend();
       renderStats();
+      clearCapture({ silent:true });
       selectTab('log');
     }
 
-    function renderLog(){
-      var list = $('#logList');
-      list.innerHTML = '';
-
-      var q = String($('#search').value || '').trim().toLowerCase();
+    function getFilteredEntries(opts){
+      var includeSearch = !opts || opts.includeSearch !== false;
+      var q = includeSearch ? String($('#search').value || '').trim().toLowerCase() : '';
       var from = $('#fromDate').value ? new Date($('#fromDate').value + 'T00:00:00') : null;
       var to = $('#toDate').value ? new Date($('#toDate').value + 'T23:59:59') : null;
 
@@ -2786,25 +2842,40 @@
         var t = new Date(e.ts);
         if(from && t < from) return false;
         if(to && t > to) return false;
-        if(!q) return true;
+        if(!includeSearch || !q) return true;
         var names = (e.analysis && e.analysis.detected_items) ? e.analysis.detected_items.map(function(x){ return x.name; }) : [];
         var hay = [e.title, e.notes, e.mealType].concat(names).join(' ').toLowerCase();
         return hay.indexOf(q) !== -1;
       });
 
+      return { entries: filtered, from: from, to: to };
+    }
+
+    function renderLog(){
+      var list = $('#logList');
+      list.innerHTML = '';
+
+      var filtered = getFilteredEntries({ includeSearch:true }).entries;
+
       $('#entryCount').textContent = String(filtered.length);
       $('#logEmpty').style.display = filtered.length ? 'none' : 'block';
+      if(!filtered.length && $('#analyzeOutput')){
+        $('#analyzeOutput').style.display = 'none';
+      }
 
       filtered.forEach(function(e){
         var div = document.createElement('div');
         div.className = 'logitem';
         var dt = new Date(e.ts);
-        var totals = (e.analysis && e.analysis.totals) ? e.analysis.totals : {calories:0, protein_g:0, carbs_g:0, fat_g:0};
+        var totals = (e.analysis && e.analysis.totals)
+          ? Object.assign({calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0}, e.analysis.totals)
+          : {calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0};
         var items = (e.analysis && e.analysis.detected_items) ? e.analysis.detected_items : [];
         var itemNames = items.map(function(x){ return x && x.name ? String(x.name) : ''; }).filter(Boolean);
         var itemPreview = itemNames.slice(0, 3).join(', ');
         var itemSuffix = itemNames.length > 3 ? (' +' + (itemNames.length - 3) + ' more') : '';
         var thumbUrl = (e.imgThumbs && e.imgThumbs.length) ? e.imgThumbs[0] : (e.imgThumb || '');
+        var mealReview = (e.analysis && e.analysis.meal_review) ? String(e.analysis.meal_review).trim() : '';
 
         div.innerHTML = '' +
           (thumbUrl
@@ -2824,8 +2895,10 @@
           '        <span class="macro-pill protein">Protein ' + round1(totals.protein_g) + 'g</span>' +
           '        <span class="macro-pill carbs">Carbs ' + round1(totals.carbs_g) + 'g</span>' +
           '        <span class="macro-pill fat">Fat ' + round1(totals.fat_g) + 'g</span>' +
+          '        <span class="macro-pill fiber">Fiber ' + round1(totals.fiber_g) + 'g</span>' +
           '      </div>' +
           (itemPreview ? ('      <div class="meta-row wide"><span class="meta-label">Items</span><span class="item-preview">' + escapeHtml(itemPreview + itemSuffix) + '</span></div>') : '') +
+          (mealReview ? ('      <div class="meta-row wide"><span class="meta-label">Meal review</span><span class="note-pill">' + escapeHtml(mealReview) + '</span></div>') : '') +
           (e.notes ? ('      <div class="meta-row wide"><span class="meta-label">Notes</span><span class="note-pill">' + escapeHtml(e.notes) + '</span></div>') : '') +
           '    </div>' +
           '  </div>' +
@@ -2874,6 +2947,185 @@
       });
     }
 
+    function setAnalyzeStatus(msg, kind){
+      var wrap = $('#analyzeStatus');
+      if(!wrap) return;
+      var icon = wrap.querySelector('.status-icon');
+      wrap.style.display = 'flex';
+      wrap.className = 'statusline ' + (kind || 'info');
+      if(icon) icon.textContent = iconForStatus(kind || 'info');
+      var txt = $('#analyzeStatusText');
+      if(txt) txt.textContent = msg;
+    }
+
+    function buildRangeSummary(entries, from, to){
+      var totals = {calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0};
+      var perDayMap = {};
+      var minTs = null, maxTs = null;
+
+      (entries || []).forEach(function(e){
+        var ts = new Date(e.ts);
+        if(!minTs || ts < minTs) minTs = ts;
+        if(!maxTs || ts > maxTs) maxTs = ts;
+
+        var t = (e.analysis && e.analysis.totals) ? e.analysis.totals : {};
+        totals.calories += toNum(t.calories);
+        totals.protein_g += toNum(t.protein_g);
+        totals.carbs_g += toNum(t.carbs_g);
+        totals.fat_g += toNum(t.fat_g);
+        totals.fiber_g += toNum(t.fiber_g);
+
+        var day = toLocalDateInput(ts);
+        if(!perDayMap[day]){
+          perDayMap[day] = { date: day, calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, entries:0 };
+        }
+        perDayMap[day].calories += toNum(t.calories);
+        perDayMap[day].protein_g += toNum(t.protein_g);
+        perDayMap[day].carbs_g += toNum(t.carbs_g);
+        perDayMap[day].fat_g += toNum(t.fat_g);
+        perDayMap[day].fiber_g += toNum(t.fiber_g);
+        perDayMap[day].entries += 1;
+      });
+
+      var perDay = Object.keys(perDayMap).sort().map(function(k){
+        var v = perDayMap[k];
+        v.calories = Math.round(v.calories);
+        v.protein_g = round1(v.protein_g);
+        v.carbs_g = round1(v.carbs_g);
+        v.fat_g = round1(v.fat_g);
+        v.fiber_g = round1(v.fiber_g);
+        return v;
+      });
+
+      var rangeFrom = from || minTs || new Date();
+      var rangeTo = to || maxTs || rangeFrom;
+      var daySpan = Math.max(1, Math.round((rangeTo - rangeFrom) / (24*60*60*1000)) + 1);
+
+      var avgPerDay = {
+        calories: Math.round(totals.calories / daySpan),
+        protein_g: round1(totals.protein_g / daySpan),
+        carbs_g: round1(totals.carbs_g / daySpan),
+        fat_g: round1(totals.fat_g / daySpan),
+        fiber_g: round1(totals.fiber_g / daySpan)
+      };
+
+      var topMap = {};
+      (entries || []).forEach(function(e){
+        (e.analysis && e.analysis.detected_items ? e.analysis.detected_items : []).forEach(function(it){
+          var key = String(it.name || '').toLowerCase().trim();
+          if(!key) return;
+          if(!topMap[key]){
+            topMap[key] = { name: it.name, calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, n:0 };
+          }
+          topMap[key].calories += toNum(it.calories);
+          topMap[key].protein_g += toNum(it.protein_g);
+          topMap[key].carbs_g += toNum(it.carbs_g);
+          topMap[key].fat_g += toNum(it.fat_g);
+          topMap[key].fiber_g += toNum(it.fiber_g);
+          topMap[key].n += 1;
+        });
+      });
+
+      var topItems = Object.keys(topMap).map(function(k){ return topMap[k]; }).sort(function(a,b){ return b.calories - a.calories; }).slice(0, 10);
+
+      return {
+        range: { from: toLocalDateInput(rangeFrom), to: toLocalDateInput(rangeTo) },
+        entry_count: entries.length,
+        day_span: daySpan,
+        totals: {
+          calories: Math.round(totals.calories),
+          protein_g: round1(totals.protein_g),
+          carbs_g: round1(totals.carbs_g),
+          fat_g: round1(totals.fat_g),
+          fiber_g: round1(totals.fiber_g)
+        },
+        avg_per_day: avgPerDay,
+        per_day: perDay,
+        top_items: topItems
+      };
+    }
+
+    function extractMessageText(res){
+      var content = res && res.choices && res.choices[0] && res.choices[0].message ? res.choices[0].message.content : '';
+      if(typeof content === 'string') return content;
+      if(Array.isArray(content)){
+        return content.map(function(part){
+          if(typeof part === 'string') return part;
+          if(part && typeof part.text === 'string') return part.text;
+          if(part && part.type === 'text' && part.text) return part.text;
+          return '';
+        }).join('');
+      }
+      if(content && typeof content === 'object' && content.content) return String(content.content);
+      if(content != null) return String(content);
+      return '';
+    }
+
+    function renderRangeAnalysis(text, summary){
+      var box = $('#analyzeOutput');
+      if(!box) return;
+      if(!text){
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+      var header = '';
+      if(summary && summary.range){
+        var parts = ['Range: ' + escapeHtml(summary.range.from) + ' → ' + escapeHtml(summary.range.to)];
+        if(summary.entry_count != null) parts.push(escapeHtml(String(summary.entry_count)) + ' entries');
+        header = '<div style="font-weight:700; margin-bottom:6px">' + parts.join(' · ') + '</div>';
+      }
+      box.innerHTML = header + '<div>' + escapeHtml(text).replace(/\n/g, '<br>') + '</div>';
+      box.style.display = 'block';
+    }
+
+    function analyzeRange(){
+      var btn = $('#btnAnalyzeRange');
+      var hasKey = Boolean(state.settings.apiKey);
+      var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
+      if(!hasKey && !hasProxy){
+        toast('Missing OpenRouter key', 'Go to Settings and set an OpenRouter key or a proxy URL.');
+        selectTab('settings');
+        return;
+      }
+
+      var filtered = getFilteredEntries({ includeSearch:true });
+      if(!filtered.entries.length){
+        setAnalyzeStatus('No entries in this range.', 'warn');
+        renderRangeAnalysis('', null);
+        toast('No entries to analyze');
+        return;
+      }
+
+      var summary = buildRangeSummary(filtered.entries, filtered.from, filtered.to);
+      setAnalyzeStatus('Analyzing ' + summary.entry_count + ' entries...', 'sync');
+      if(btn){ btn.disabled = true; btn.textContent = 'Analyzing…'; }
+      setLoading(true);
+
+      var body = {
+        model: state.settings.model,
+        messages: [
+          { role:'system', content:'You are an objective nutrition analyst. Given summarized log data, highlight trends, consistency, macro balance (including fiber), and offer actionable, encouraging suggestions. Keep it concise (under 180 words) and avoid hallucinating details not in the data.' },
+          { role:'user', content:'Analyze this JSON summary of my meals for the selected range. Focus on trends, balance, and actionable tips.\n' + JSON.stringify(summary, null, 2) }
+        ],
+        temperature: 0.4
+      };
+
+      openRouterChat(body).then(function(res){
+        var text = extractMessageText(res);
+        if(!text) text = 'No analysis text returned.';
+        renderRangeAnalysis(text, summary);
+        setAnalyzeStatus('Analysis ready.', 'ok');
+      }).catch(function(err){
+        var msg = String((err && err.message) ? err.message : err);
+        setAnalyzeStatus('Analysis failed: ' + msg, 'err');
+        toast('Analysis failed', msg);
+      }).finally(function(){
+        if(btn){ btn.disabled = false; btn.textContent = 'Analyze'; }
+        setLoading(false);
+      });
+    }
+
     function structuredCloneSafe(obj){
       try{
         if(typeof structuredClone === 'function') return structuredClone(obj);
@@ -2887,7 +3139,7 @@
       if(!e) return;
 
       selectTab('capture');
-      clearCapture();
+      clearCapture({ silent:true });
 
       state.current.analysis = structuredCloneSafe(e.analysis);
       state.current.modelUsed = e.model || '';
@@ -2931,10 +3183,11 @@
       state.current.analysis = {
         meal_name: '',
         detected_items: [
-          { name:'', portion:'', grams:0, calories:0, protein_g:0, carbs_g:0, fat_g:0, confidence:0.6, notes:'manual' }
+          { name:'', portion:'', grams:0, calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, confidence:0.6, notes:'manual' }
         ],
-        totals: { calories:0, protein_g:0, carbs_g:0, fat_g:0 },
+        totals: { calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0 },
         assumptions: ['Manual entry: adjust values.'],
+        meal_review: '',
         overall_confidence: 0.7
       };
       setAnalysis(state.current.analysis);
@@ -3017,7 +3270,7 @@
       for(var i=0;i<days;i++){
         var d = new Date(start); d.setDate(start.getDate() + i);
         var key = toLocalDateInput(d);
-        out[key] = {date:key, calories:0, protein_g:0, carbs_g:0, fat_g:0, n:0};
+        out[key] = {date:key, calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, n:0};
       }
 
       (entries || []).forEach(function(e){
@@ -3028,6 +3281,7 @@
         out[k].protein_g += toNum(t.protein_g);
         out[k].carbs_g += toNum(t.carbs_g);
         out[k].fat_g += toNum(t.fat_g);
+        out[k].fiber_g += toNum(t.fiber_g);
         out[k].n += 1;
       });
 
@@ -3036,6 +3290,7 @@
         out[k].protein_g = round1(out[k].protein_g);
         out[k].carbs_g = round1(out[k].carbs_g);
         out[k].fat_g = round1(out[k].fat_g);
+        out[k].fiber_g = round1(out[k].fiber_g);
         return out[k];
       });
 
@@ -3223,7 +3478,7 @@
       drawBarChart($('#trend'), series, 'calories', 'kcal');
 
       var todayKey = toLocalDateInput(new Date());
-      var today = {calories:0, protein_g:0, carbs_g:0, fat_g:0, n:0};
+      var today = {calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, n:0};
       series.forEach(function(x){ if(x.date === todayKey) today = x; });
 
       var last7 = series.slice(-7);
@@ -3244,6 +3499,7 @@
             '<span>🥩 ' + round1(today.protein_g) + 'g</span>' +
             '<span>🍞 ' + round1(today.carbs_g) + 'g</span>' +
             '<span>🧈 ' + round1(today.fat_g) + 'g</span>' +
+            '<span>🌱 ' + round1(today.fiber_g) + 'g</span>' +
           '</div>' +
         '</div>';
       $('#kpiAvg7').textContent = formatKcal(avg7);
@@ -3258,7 +3514,7 @@
       var metric = $('#statsMetric').value || 'calories';
       var series = groupByDay(state.entries, days);
 
-      var label = (metric === 'calories') ? 'kcal' : metric.replace('_g',' (g)');
+      var label = (metric === 'calories') ? 'kcal' : (capitalize(metric.replace('_g','')) + ' (g)');
       drawBarChart($('#byDay'), series, metric, label);
 
       var p = 0, c = 0, f = 0;
