@@ -862,17 +862,30 @@
               </div>
               <div class="row" style="margin-top:10px">
                 <button class="btn" id="btnAddManual">Add manual entry</button>
-                <button class="btn" id="btnAnalyzeRange">Analyze</button>
                 <span class="pill"><b>Total entries</b> <span id="entryCount">0</span></span>
               </div>
-              <div class="statusline off" id="analyzeStatus" style="display:none">
-                <span class="status-icon" aria-hidden="true">○</span>
-                <span id="analyzeStatusText">Ready</span>
-              </div>
-              <div id="analyzeOutput" class="analysis-box" style="margin-top:10px; display:none"></div>
               <div class="hr"></div>
               <div class="loglist" id="logList"></div>
               <div id="logEmpty" class="hint" style="display:none">No entries yet. Use the Capture tab to add one.</div>
+              <div class="hr" style="margin-top:16px"></div>
+              <div>
+                <div class="row" style="align-items:flex-end">
+                  <div style="flex:1 1 100%">
+                    <label for="expertQuestion">Ask expert</label>
+                    <textarea id="expertQuestion" placeholder="Ask a nutritionist about this date range…"></textarea>
+                  </div>
+                </div>
+                <div class="row" style="margin-top:8px; align-items:center">
+                  <button class="btn primary" id="btnAskExpert">Ask</button>
+                  <button class="btn" id="btnClearExpert">Clear</button>
+                  <span class="pill" id="expertRangeHint" style="display:none"><b>Range</b> <span id="expertRangeText"></span></span>
+                </div>
+                <div class="statusline off" id="expertStatus" style="display:none">
+                  <span class="status-icon" aria-hidden="true">○</span>
+                  <span id="expertStatusText">Ready</span>
+                </div>
+                <div id="expertResponse" class="analysis-box" style="margin-top:10px; display:none"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -931,7 +944,7 @@
             <div class="hd">
               <div>
                 <h2>Daily totals</h2>
-                <div class="sub">Last 14 days calories trend (local).</div>
+                <div class="sub" id="dailyTotalsSub">Last 14 days calories trend (local).</div>
               </div>
               <div class="row" style="justify-content:flex-end">
                 <span class="chip"><span class="dot ok"></span>Food log</span>
@@ -944,9 +957,9 @@
               <div class="hr"></div>
               <div class="kpi">
                 <div class="box"><div class="t">Today</div><div class="v" id="kpiToday">—</div></div>
-                <div class="box"><div class="t">7-day avg</div><div class="v" id="kpiAvg7">—</div></div>
-                <div class="box"><div class="t">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
-                <div class="box"><div class="t">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
+                <div class="box"><div class="t" id="kpiAvgLabel">7-day avg</div><div class="v" id="kpiAvg7">—</div></div>
+                <div class="box"><div class="t" id="kpiMaxLabel">Max (14d)</div><div class="v" id="kpiMax14">—</div></div>
+                <div class="box"><div class="t" id="kpiNLabel">Entries (14d)</div><div class="v" id="kpiN14">—</div></div>
               </div>
               <div style="margin-top:12px; overflow:auto; border-radius:14px; border:1px solid var(--line)">
                 <table class="table" id="dailyMacroTable">
@@ -1727,7 +1740,8 @@
       $('#btnImport').addEventListener('click', importData);
       $('#btnWipe').addEventListener('click', wipeAll);
       $('#btnAddManual').addEventListener('click', addManual);
-      $('#btnAnalyzeRange').addEventListener('click', analyzeRange);
+      $('#btnAskExpert').addEventListener('click', askExpert);
+      $('#btnClearExpert').addEventListener('click', clearExpertResponse);
 
       // Stats
       $('#statsWindow').addEventListener('change', renderStats);
@@ -2855,12 +2869,15 @@
       var list = $('#logList');
       list.innerHTML = '';
 
-      var filtered = getFilteredEntries({ includeSearch:true }).entries;
+      var filteredData = getFilteredEntries({ includeSearch:true });
+      var filtered = filteredData.entries;
 
+      updateExpertRangeHint(filteredData);
       $('#entryCount').textContent = String(filtered.length);
       $('#logEmpty').style.display = filtered.length ? 'none' : 'block';
-      if(!filtered.length && $('#analyzeOutput')){
-        $('#analyzeOutput').style.display = 'none';
+      if(!filtered.length){
+        if($('#expertResponse')) $('#expertResponse').style.display = 'none';
+        if($('#expertStatus')) $('#expertStatus').style.display = 'none';
       }
 
       filtered.forEach(function(e){
@@ -2947,15 +2964,28 @@
       });
     }
 
-    function setAnalyzeStatus(msg, kind){
-      var wrap = $('#analyzeStatus');
+    function setExpertStatus(msg, kind){
+      var wrap = $('#expertStatus');
       if(!wrap) return;
       var icon = wrap.querySelector('.status-icon');
       wrap.style.display = 'flex';
       wrap.className = 'statusline ' + (kind || 'info');
       if(icon) icon.textContent = iconForStatus(kind || 'info');
-      var txt = $('#analyzeStatusText');
+      var txt = $('#expertStatusText');
       if(txt) txt.textContent = msg;
+    }
+
+    function updateExpertRangeHint(data){
+      var wrap = $('#expertRangeHint');
+      var txt = $('#expertRangeText');
+      if(!wrap || !txt) return;
+      var info = data || getFilteredEntries({ includeSearch:true });
+      var fromTxt = info.from ? toLocalDateInput(info.from) : 'Earliest';
+      var toTxt = info.to ? toLocalDateInput(info.to) : 'Latest';
+      var parts = [fromTxt + ' → ' + toTxt];
+      parts.push(String(info.entries.length) + ' entr' + (info.entries.length === 1 ? 'y' : 'ies'));
+      txt.textContent = parts.join(' · ');
+      wrap.style.display = 'inline-flex';
     }
 
     function buildRangeSummary(entries, from, to){
@@ -3061,26 +3091,43 @@
       return '';
     }
 
-    function renderRangeAnalysis(text, summary){
-      var box = $('#analyzeOutput');
+    function renderExpertResponse(text, summary){
+      var box = $('#expertResponse');
       if(!box) return;
       if(!text){
         box.style.display = 'none';
         box.innerHTML = '';
         return;
       }
-      var header = '';
+      box.innerHTML = '';
       if(summary && summary.range){
-        var parts = ['Range: ' + escapeHtml(summary.range.from) + ' → ' + escapeHtml(summary.range.to)];
-        if(summary.entry_count != null) parts.push(escapeHtml(String(summary.entry_count)) + ' entries');
-        header = '<div style="font-weight:700; margin-bottom:6px">' + parts.join(' · ') + '</div>';
+        var header = document.createElement('div');
+        header.style.fontWeight = '700';
+        header.style.marginBottom = '6px';
+        var parts = ['Range: ' + summary.range.from + ' → ' + summary.range.to];
+        if(summary.entry_count != null) parts.push(summary.entry_count + ' entries');
+        header.textContent = parts.join(' · ');
+        box.appendChild(header);
       }
-      box.innerHTML = header + '<div>' + escapeHtml(text).replace(/\n/g, '<br>') + '</div>';
+      var body = document.createElement('div');
+      body.textContent = text;
+      body.style.whiteSpace = 'pre-wrap';
+      box.appendChild(body);
       box.style.display = 'block';
     }
 
-    function analyzeRange(){
-      var btn = $('#btnAnalyzeRange');
+    function clearExpertResponse(){
+      var status = $('#expertStatus');
+      if(status) status.style.display = 'none';
+      renderExpertResponse('', null);
+      var q = $('#expertQuestion');
+      if(q) q.value = '';
+      var btn = $('#btnAskExpert');
+      if(btn){ btn.disabled = false; btn.textContent = 'Ask'; }
+    }
+
+    function askExpert(){
+      var btn = $('#btnAskExpert');
       var hasKey = Boolean(state.settings.apiKey);
       var hasProxy = Boolean(String(state.settings.proxyUrl || '').trim());
       if(!hasKey && !hasProxy){
@@ -3090,38 +3137,74 @@
       }
 
       var filtered = getFilteredEntries({ includeSearch:true });
+      updateExpertRangeHint(filtered);
       if(!filtered.entries.length){
-        setAnalyzeStatus('No entries in this range.', 'warn');
-        renderRangeAnalysis('', null);
-        toast('No entries to analyze');
+        setExpertStatus('No entries in this range.', 'warn');
+        renderExpertResponse('', null);
+        toast('No entries to send');
+        return;
+      }
+
+      var q = String($('#expertQuestion').value || '').trim();
+      if(!q){
+        toast('Enter a question for the expert');
         return;
       }
 
       var summary = buildRangeSummary(filtered.entries, filtered.from, filtered.to);
-      setAnalyzeStatus('Analyzing ' + summary.entry_count + ' entries...', 'sync');
-      if(btn){ btn.disabled = true; btn.textContent = 'Analyzing…'; }
+      setExpertStatus('Sending ' + summary.entry_count + ' entries…', 'sync');
+      if(btn){ btn.disabled = true; btn.textContent = 'Asking…'; }
       setLoading(true);
+
+      var payloadEntries = filtered.entries.map(function(e){
+        var totals = (e.analysis && e.analysis.totals) ? e.analysis.totals : {};
+        var items = (e.analysis && e.analysis.detected_items) ? e.analysis.detected_items : [];
+        return {
+          date: toLocalDateInput(e.ts),
+          title: e.title || '',
+          mealType: e.mealType || '',
+          notes: e.notes || '',
+          totals: {
+            calories: toNum(totals.calories),
+            protein_g: toNum(totals.protein_g),
+            carbs_g: toNum(totals.carbs_g),
+            fat_g: toNum(totals.fat_g),
+            fiber_g: toNum(totals.fiber_g)
+          },
+          items: items.map(function(it){
+            return {
+              name: it.name || '',
+              portion: it.portion || '',
+              calories: toNum(it.calories),
+              protein_g: toNum(it.protein_g),
+              carbs_g: toNum(it.carbs_g),
+              fat_g: toNum(it.fat_g),
+              fiber_g: toNum((it.fiber_g != null ? it.fiber_g : it.fibre_g))
+            };
+          })
+        };
+      });
 
       var body = {
         model: state.settings.model,
         messages: [
-          { role:'system', content:'You are an objective nutrition analyst. Given summarized log data, highlight trends, consistency, macro balance (including fiber), and offer actionable, encouraging suggestions. Keep it concise (under 180 words) and avoid hallucinating details not in the data.' },
-          { role:'user', content:'Analyze this JSON summary of my meals for the selected range. Focus on trends, balance, and actionable tips.\n' + JSON.stringify(summary, null, 2) }
+          { role:'system', content:'You are a nutritionist. Answer with clear, plain text (no markdown). Base responses only on the provided food logs and query.' },
+          { role:'user', content:'User question: ' + q + '\nDate range: ' + summary.range.from + ' → ' + summary.range.to + '\nFood logs:\n' + JSON.stringify(payloadEntries, null, 2) }
         ],
         temperature: 0.4
       };
 
       openRouterChat(body).then(function(res){
         var text = extractMessageText(res);
-        if(!text) text = 'No analysis text returned.';
-        renderRangeAnalysis(text, summary);
-        setAnalyzeStatus('Analysis ready.', 'ok');
+        if(!text) text = 'No response returned.';
+        renderExpertResponse(text, summary);
+        setExpertStatus('Answer ready.', 'ok');
       }).catch(function(err){
         var msg = String((err && err.message) ? err.message : err);
-        setAnalyzeStatus('Analysis failed: ' + msg, 'err');
-        toast('Analysis failed', msg);
+        setExpertStatus('Request failed: ' + msg, 'err');
+        toast('Ask expert failed', msg);
       }).finally(function(){
-        if(btn){ btn.disabled = false; btn.textContent = 'Analyze'; }
+        if(btn){ btn.disabled = false; btn.textContent = 'Ask'; }
         setLoading(false);
       });
     }
@@ -3473,24 +3556,39 @@
       ctx.fillText('Macro split (grams)', 16, h-14);
     }
 
-    function renderTrend(){
-      var series = groupByDay(state.entries, 14);
+    function renderTrend(daysOverride){
+      var days = clamp(Number(daysOverride || $('#statsWindow').value || 14), 1, 365);
+      var series = groupByDay(state.entries, days);
       drawBarChart($('#trend'), series, 'calories', 'kcal');
+
+      var sub = $('#dailyTotalsSub');
+      if(sub){
+        var label = days === 1 ? 'Today' : ('Last ' + days + ' days');
+        sub.textContent = label + ' calories trend (local).';
+      }
 
       var todayKey = toLocalDateInput(new Date());
       var today = {calories:0, protein_g:0, carbs_g:0, fat_g:0, fiber_g:0, n:0};
       series.forEach(function(x){ if(x.date === todayKey) today = x; });
 
-      var last7 = series.slice(-7);
-      var sum7 = 0;
-      last7.forEach(function(x){ sum7 += x.calories; });
-      var avg7 = sum7 / Math.max(1, last7.length);
+      var avgSpan = Math.min(7, days);
+      var lastSpan = series.slice(-avgSpan);
+      var sumSpan = 0;
+      lastSpan.forEach(function(x){ sumSpan += x.calories; });
+      var avgSpanVal = sumSpan / Math.max(1, lastSpan.length);
 
-      var max14 = 0;
-      series.forEach(function(x){ max14 = Math.max(max14, x.calories); });
+      var maxRange = 0;
+      series.forEach(function(x){ maxRange = Math.max(maxRange, x.calories); });
 
-      var n14 = 0;
-      series.forEach(function(x){ n14 += x.n; });
+      var nRange = 0;
+      series.forEach(function(x){ nRange += x.n; });
+
+      var avgLabel = $('#kpiAvgLabel');
+      if(avgLabel) avgLabel.textContent = avgSpan + '-day avg';
+      var maxLabel = $('#kpiMaxLabel');
+      if(maxLabel) maxLabel.textContent = 'Max (' + days + 'd)';
+      var nLabel = $('#kpiNLabel');
+      if(nLabel) nLabel.textContent = 'Entries (' + days + 'd)';
 
       $('#kpiToday').innerHTML =
         '<div class="kpi-rows">' +
@@ -3502,15 +3600,16 @@
             '<span>🌱 ' + round1(today.fiber_g) + 'g</span>' +
           '</div>' +
         '</div>';
-      $('#kpiAvg7').textContent = formatKcal(avg7);
-      $('#kpiMax14').textContent = formatKcal(max14);
-      $('#kpiN14').textContent = String(n14);
+      $('#kpiAvg7').textContent = formatKcal(avgSpanVal);
+      $('#kpiMax14').textContent = formatKcal(maxRange);
+      $('#kpiN14').textContent = String(nRange);
 
       renderDailyMacroTable(series);
     }
 
     function renderStats(){
       var days = clamp(Number($('#statsWindow').value || 14), 1, 365);
+      renderTrend(days);
       var metric = $('#statsMetric').value || 'calories';
       var series = groupByDay(state.entries, days);
 
