@@ -1246,6 +1246,7 @@
     var LS_ENTRIES  = 'calorieCam.entries';
     var LS_THEME    = 'calorieCam.theme';
     var LS_SYNC     = 'calorieCam.sync';
+    var CLOUD_MAX_BYTES = 950 * 1024;
     var LS_SETTINGS_KEYS = [LS_SETTINGS, 'calorieCam.settings.v1'];
     var LS_ENTRIES_KEYS  = [LS_ENTRIES, 'calorieCam.entries.v1'];
     var LS_THEME_KEYS    = [LS_THEME, 'calorieCam.theme.v1'];
@@ -1494,6 +1495,47 @@
       return fb.doc(fb.db, 'users', cloud.uid, 'apps', 'caloriecam');
     }
 
+    function compactEntryForCloud(entry){
+      var hasImage = Boolean((entry && entry.imgThumbs && entry.imgThumbs.length) || entry.imgThumb);
+      return {
+        id: entry.id,
+        ts: entry.ts,
+        mealType: entry.mealType,
+        title: entry.title,
+        notes: entry.notes,
+        imgThumbs: [],
+        hasImage: hasImage,
+        analysis: structuredCloneSafe(entry.analysis || null),
+        model: entry.model,
+        usage: structuredCloneSafe(entry.usage || null)
+      };
+    }
+
+    function buildCloudPayload(){
+      var entries = Array.isArray(state.entries) ? state.entries.map(compactEntryForCloud) : [];
+      var payload = {
+        settings: settingsForCloud(),
+        entries: entries,
+        updatedAt: null,
+        clientUpdatedAt: (syncMeta && syncMeta.lastLocal) ? syncMeta.lastLocal : Date.now()
+      };
+
+      var size = JSON.stringify(payload).length;
+      if(size > CLOUD_MAX_BYTES){
+        var trimmed = entries.slice();
+        while(trimmed.length && size > CLOUD_MAX_BYTES){
+          trimmed.pop();
+          payload.entries = trimmed;
+          size = JSON.stringify(payload).length;
+        }
+        if(trimmed.length < entries.length){
+          setSyncStatus('Synced last ' + trimmed.length + ' entries (size limit).', 'warn');
+        }
+      }
+
+      return payload;
+    }
+
     function settingsForCloud(){
       var copy = Object.assign({}, state.settings);
       copy.apiKey = '';
@@ -1618,12 +1660,8 @@
         markLocalChanged();
       }
 
-      var payload = {
-        settings: settingsForCloud(),
-        entries: state.entries,
-        updatedAt: fb.serverTimestamp(),
-        clientUpdatedAt: (syncMeta && syncMeta.lastLocal) ? syncMeta.lastLocal : Date.now()
-      };
+      var payload = buildCloudPayload();
+      payload.updatedAt = fb.serverTimestamp();
       setSyncStatus('Syncing...', 'sync');
       fb.setDoc(ref, payload, { merge:true }).then(function(){
         cloud.lastSync = Date.now();
